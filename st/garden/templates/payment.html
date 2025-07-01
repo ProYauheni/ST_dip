@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+{% if payment_info %}
+  <div>
+    <h3>Членские взносы</h3>
+    <p><strong>Размер:</strong> {{ payment_info.membership_fee_amount|default:"Не указано" }} BYN</p>
+    <p><strong>Срок оплаты:</strong> {{ payment_info.membership_fee_due_date|date:"d.m.Y"|default:"Не указано" }}</p>
+    <p><strong>Инструкция по оплате:</strong><br>{{ payment_info.membership_fee_instruction|linebreaks }}</p>
+
+    <h3>Дополнительные взносы</h3>
+    <p><strong>Размер:</strong> {{ payment_info.additional_fee_amount|default:"Не указано" }} BYN</p>
+    <p><strong>Срок оплаты:</strong> {{ payment_info.additional_fee_due_date|date:"d.m.Y"|default:"Не указано" }}</p>
+  </div>
+{% else %}
+  <p>Информация об оплате отсутствует.</p>
+{% endif %}
+
+{% endblock %}

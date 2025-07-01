@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Загрузка документа для товарищества {{ community.name }}</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Загрузить</button>
+    <a href="{% url 'documents_list' community.id %}" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

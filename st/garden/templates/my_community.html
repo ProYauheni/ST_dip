@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>{{ community.name }}</h2>
+{% if community.description %}
+    <p>{{ community.description }}</p>
+{% endif %}
+
+<hr>
+
+<h3>Новости</h3>
+{% if news %}
+    <ul>
+        {% for item in news %}
+            <li>
+                <strong>{{ item.title }}</strong>
+                <br>
+                <small>{{ item.created_at|date:"d.m.Y H:i" }}</small>
+                <p>{{ item.content|truncatewords:30 }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Пока нет новостей.</p>
+{% endif %}
+
+<hr>
+
+<h3>Активные голосования</h3>
+{% if votings %}
+    <ul>
+        {% for voting in votings %}
+            <li>
+                <strong>{{ voting.question }}</strong>
+                <br>
+                <small>Начато: {{ voting.created_at|date:"d.m.Y H:i" }}</small>
+                <br>
+                <!-- Кнопка для перехода к голосованию -->
+                <a href="{% url 'voting_detail' voting.id %}" class="btn btn-primary btn-sm">
+                    Перейти к голосованию
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Нет активных голосований.</p>
+{% endif %}
+
+<hr>
+
+<h3>Документы</h3>
+
+<a href="{% url 'documents_list' community.id %}" class="btn btn-outline-primary mb-3">
+    Перейти к списку документов
+</a>
+
+<hr>
+<a href="{% url 'community_contacts' %}" class="btn btn-outline-primary mb-3">
+    Контакты
+</a>
+<hr>
+<a href="{% url 'community_payment' %}" class="btn btn-outline-primary mb-3">
+    Платежи
+</a>
+
+<hr>
+<a href="{% url 'profile' %}" class="btn btn-outline-primary mb-3">Личный кабинет</a>
+
+{% endblock %}

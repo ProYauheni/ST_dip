@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Список всех голосований и их результаты</h2>
+
+{% if votings %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Вопрос</th>
+                <th>Сообщество</th>
+                <th>Активно</th>
+                <th>Всего голосов</th>
+                <th>Голоса "За"</th>
+                <th>Голоса "Против"</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for voting in votings %}
+            <tr>
+                <td>{{ voting.question }}</td>
+                <td>{{ voting.community.name }}</td>
+                <td>{% if voting.active %}Да{% else %}Нет{% endif %}</td>
+                <td>{{ voting.total_votes }}</td>
+                <td>{{ voting.votes_for }}</td>
+                <td>{{ voting.votes_against }}</td>
+
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Голосований пока нет.</p>
+{% endif %}
+
+{% endblock %}

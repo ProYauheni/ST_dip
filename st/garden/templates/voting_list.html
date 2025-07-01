@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Активные голосования вашего товарищества</h2>
+
+{% if votings %}
+    <ul class="list-group">
+        {% for voting in votings %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ voting.question }}</strong><br>
+                    <small>Начато: {{ voting.created_at|date:"d.m.Y H:i" }}</small>
+                </div>
+                <a href="{% url 'voting_detail' voting.id %}" class="btn btn-primary btn-sm">
+                    Голосовать
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>В настоящее время нет активных голосований.</p>
+{% endif %}
+
+{% endblock %}

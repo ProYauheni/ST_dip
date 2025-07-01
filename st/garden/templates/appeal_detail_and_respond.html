@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Обращение от {{ appeal.user.username }} ({{ appeal.created_at|date:"d.m.Y H:i" }})</h2>
+<p><strong>Тип:</strong> {{ appeal.get_appeal_type_display }}</p>
+<p><strong>Текст обращения:</strong><br>{{ appeal.text|linebreaks }}</p>
+
+<hr>
+
+<h3>Ответ</h3>
+{% if appeal.response %}
+    <p><strong>Ответил:</strong> {{ appeal.responder.username }} ({{ appeal.responded_at|date:"d.m.Y H:i" }})</p>
+    <p>{{ appeal.response|linebreaks }}</p>
+{% else %}
+    <p><em>Ответ ещё не дан.</em></p>
+{% endif %}
+
+<hr>
+
+<h3>Добавить / Изменить ответ</h3>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Сохранить ответ</button>
+</form>
+
+{% endblock %}

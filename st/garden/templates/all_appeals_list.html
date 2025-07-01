@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Все обращения пользователей</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Пользователь</th>
+            <th>Тип обращения</th>
+            <th>Текст</th>
+            <th>Дата</th>
+            <th>Ответ</th>
+            <th>Ответил</th>
+            <th>Действия</th>  <!-- Добавляем колонку для ссылок -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for appeal in appeals %}
+        <tr>
+            <td>{{ appeal.user.get_full_name|default:appeal.user.username }}</td>
+            <td>{{ appeal.get_appeal_type_display }}</td>
+            <td>{{ appeal.text|truncatewords:20 }}</td>
+            <td>{{ appeal.created_at|date:"d.m.Y H:i" }}</td>
+            <td>
+                {% if appeal.response %}
+                    {{ appeal.response|truncatewords:20 }}
+                {% else %}
+                    <em>Нет ответа</em>
+                {% endif %}
+            </td>
+            <td>
+                {% if appeal.responder %}
+                    {{ appeal.responder.get_full_name|default:appeal.responder.username }}
+                {% else %}
+                    <em>—</em>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'appeal_detail_and_respond' appeal.id %}" class="btn btn-sm btn-primary">
+                    Ответить
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">Обращений нет.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+

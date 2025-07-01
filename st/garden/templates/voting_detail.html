@@ -1,0 +1,37 @@
+
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Голосование: {{ voting.question }}</h2>
+
+{% if voting_closed %}
+    {% if user_vote %}
+        <p>Голосование завершено. Ваш голос: <strong>{{ user_vote.choice|yesno:"Да,Нет" }}</strong></p>
+    {% else %}
+        <p>Голосование завершено.</p>
+    {% endif %}
+    <a href="{% url 'voting_list' %}">Вернуться к списку голосований</a>
+{% else %}
+    <form method="post">
+        {% csrf_token %}
+        <label>
+            <input type="radio" name="choice" value="True" {% if user_vote and user_vote.choice %}checked{% endif %}>
+            Да
+        </label><br>
+        <label>
+            <input type="radio" name="choice" value="False" {% if user_vote and not user_vote.choice %}checked{% endif %}>
+            Нет
+        </label><br><br>
+        <button type="submit" class="btn btn-primary">
+            {% if user_vote %}Обновить голос{% else %}Проголосовать{% endif %}
+        </button>
+    </form>
+    <br>
+    <a href="{% url 'voting_list' %}">Вернуться к списку голосований</a>
+{% endif %}
+
+{% endblock %}
+
+
+

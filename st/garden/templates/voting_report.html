@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Отчёт по голосованию: {{ voting.question }}</h2>
+
+<ul>
+    <li>Общее количество голосов: {{ total_votes }}</li>
+    <li>Голоса "За": {{ votes_for }}</li>
+    <li>Голоса "Против": {{ votes_against }}</li>
+</ul>
+
+<a href="{% url 'voting_list' %}">Вернуться к списку голосований</a>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Контакты — {{ community.name }}</h2>
+
+<h4>Председатель правления</h4>
+{% if contacts.chairman %}
+    <p>{{ contacts.chairman.full_name }}, участок № {{ contacts.chairman.plot_number }}, телефон: {{ contacts.chairman.phone }}</p>
+{% else %}
+    <p>Информация отсутствует.</p>
+{% endif %}
+
+<h4>Казначей</h4>
+{% if contacts.treasurer %}
+    <p>{{ contacts.treasurer.full_name }}, участок {{ contacts.treasurer.plot_number }}, тел: {{ contacts.treasurer.phone }}</p>
+{% else %}
+    <p>Информация отсутствует.</p>
+{% endif %}
+
+<h4>Члены правления</h4>
+{% if contacts.board_members %}
+    <ul>
+        {% for member in contacts.board_members %}
+            <li>{{ member.full_name }}, участок {{ member.plot_number }}, тел: {{ member.phone }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Информация отсутствует.</p>
+{% endif %}
+
+<h4>Ответственный за электрохозяйство</h4>
+{% if contacts.electricity_manager %}
+    <p>{{ contacts.electricity_manager.full_name }}, участок {{ contacts.electricity_manager.plot_number }}, тел: {{ contacts.electricity_manager.phone }}</p>
+{% else %}
+    <p>Информация отсутствует.</p>
+{% endif %}
+
+<h4>Ответственный за водохозяйство</h4>
+{% if contacts.water_manager %}
+    <p>{{ contacts.water_manager.full_name }}, участок {{ contacts.water_manager.plot_number }}, тел: {{ contacts.water_manager.phone }}</p>
+{% else %}
+    <p>Информация отсутствует.</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Создать новое сообщение на форуме</h2>
+
+{% if error %}
+  <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label for="title" class="form-label">Заголовок</label>
+    <input type="text" class="form-control" id="title" name="title" required>
+  </div>
+  <div class="mb-3">
+    <label for="content" class="form-label">Сообщение</label>
+    <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Опубликовать</button>
+</form>
+
+{% endblock %}

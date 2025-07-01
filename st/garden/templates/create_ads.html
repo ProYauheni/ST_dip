@@ -1,0 +1,32 @@
+<h2>Добавить объявление</h2>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <p>
+    {{ form.title.label_tag }}<br>
+    {{ form.title }}
+    {{ form.title.errors }}
+  </p>
+
+  <p>
+    {{ form.description.label_tag }}<br>
+    {{ form.description }}
+    {{ form.description.errors }}
+  </p>
+
+  <p>
+    {{ form.photo.label_tag }}<br>
+    {{ form.photo }}
+    {{ form.photo.errors }}
+  </p>
+
+  <p>
+    {{ form.contact.label_tag }}<br>
+    {{ form.contact }}
+    {{ form.contact.errors }}
+  </p>
+
+  <button type="submit" class="btn btn-primary">Опубликовать</button>
+</form>

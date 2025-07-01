@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Список объявлений{% endblock %}
+
+{% block content %}
+<h1>Список объявлений</h1>
+
+{% if ads %}
+  <ul style="list-style: none; padding: 0;">
+    {% for ad in ads %}
+      <li style="margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 15px;">
+        <h3>{{ ad.title }}</h3>
+        <p>{{ ad.description|linebreaks }}</p>
+
+        {% if ad.photo %}
+          <img src="{{ ad.photo.url }}" alt="{{ ad.title }}" style="max-width: 300px; height: auto; margin-top: 10px; border: 1px solid #ccc; padding: 5px;">
+        {% endif %}
+
+        <p><strong>Контакт для связи:</strong> {{ ad.contact }}</p>
+        <p><small>Опубликовано: {{ ad.created_at|date:"d.m.Y H:i" }}</small></p>
+        <p><small>Автор: {{ ad.owner.get_full_name|default:ad.owner.username }}</small></p>
+
+        {% if user.is_authenticated and ad.owner == user %}
+          <p>
+            <a href="{% url 'edit_advertisement' ad.pk %}">Редактировать</a> |
+            <a href="{% url 'delete_advertisement' ad.pk %}">Удалить</a>
+          </p>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Объявления отсутствуют.</p>
+{% endif %}
+
+{% endblock %}

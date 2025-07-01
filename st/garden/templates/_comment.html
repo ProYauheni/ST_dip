@@ -1,0 +1,18 @@
+<ul style="list-style: none; margin: 0; padding: 0; line-height: 1;">
+  {% for comment in comments %}
+    <li id="comment-{{ comment.id }}"
+        style="margin: 2px 0; padding: 0; {% if reply_to and comment.id == reply_to %}background: #fff3cd; border-radius: 4px;{% endif %}">
+      <span style="font-weight: bold;">{{ comment.user.username }}</span>
+      <span style="color: #888; font-size: 0.9em;">
+        ({{ comment.created_at|date:"d.m.Y H:i" }})
+      </span>:
+      <span>{{ comment.content|linebreaksbr }}</span>
+      <a href="?reply_to={{ comment.id }}#comment-{{ comment.id }}" style="margin-left: 10px; font-size: 0.9em;">Ответить</a>
+      {% if comment.replies.all %}
+        <div style="margin-left: 20px; border-left: 1px solid #ccc; padding-left: 10px;">
+          {% include "_comment.html" with comments=comment.replies.all reply_to=reply_to %}
+        </div>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
