@@ -1,2 +1,9 @@
-<p>Logged out</p>
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<p>Вы вышли из системы</p>
 <a href="{% url 'login'%}">Нажмите здесь, чтобы войти снова</a>
+
+{% endblock %}

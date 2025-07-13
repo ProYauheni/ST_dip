@@ -1,32 +1,79 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+.accordion-button {
+  justify-content: center !important;
+  text-align: center;
+  position: relative;
+}
+
+.accordion-button::after {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<h2>Документы товарищества {{ community.name }}</h2>
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 text-center flex-grow-1">Документы СТ «{{ community.name }}»</h2>
+    {% if is_chairman_or_board %}
+      <a href="{% url 'add_document' community.id %}" class="btn btn-success ms-auto">
+        <i class="bi bi-plus-lg"></i> Добавить документ
+      </a>
+    {% endif %}
+  </div>
 
-<a href="{% url 'upload_document' community.id %}" class="btn btn-primary mb-3">Загрузить новый документ</a>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
-
-            <th>Название</th>
-            <th>Дата загрузки</th>
-            <th>Файл</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for doc in documents %}
-        <tr>
-
-            <td>{{ doc.title }}</td>
-            <td>{{ doc.uploaded_at|date:"d.m.Y H:i" }}</td>
-            <td><a href="{{ doc.file.url }}" target="_blank" download>Скачать</a></td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="4">Документы отсутствуют</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+  {% if folders %}
+    <div class="accordion" id="documentsAccordion">
+      {% for folder in folders %}
+        <div class="accordion-item mb-3 shadow-sm border-0">
+          <h2 class="accordion-header" id="heading-{{ folder.id }}">
+            <button class="accordion-button collapsed fw-semibold" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse-{{ folder.id }}"
+                    aria-expanded="false"
+                    aria-controls="collapse-{{ folder.id }}">
+              {{ folder.name }}
+            </button>
+          </h2>
+          <div id="collapse-{{ folder.id }}" class="accordion-collapse collapse"
+               aria-labelledby="heading-{{ folder.id }}"
+               data-bs-parent="#documentsAccordion">
+            <div class="accordion-body bg-light">
+              {% if folder.documents.all %}
+                <ul class="list-group list-group-flush">
+                  {% for doc in folder.documents.all %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      <div>
+                        <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                        <a href="{{ doc.file.url }}" target="_blank" class="fw-semibold">{{ doc.title }}</a>
+                        <span class="badge bg-secondary ms-2">{{ doc.get_doc_type_display }}</span>
+                        <span class="text-muted ms-2 small">{{ doc.uploaded_at|date:"d.m.Y" }}</span>
+                      </div>
+                      {% if is_chairman_or_board %}
+                        <form method="post" action="{% url 'delete_document' doc.pk %}" class="d-inline" onsubmit="return confirm('Удалить документ?');">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-outline-danger btn-sm ms-2">Удалить</button>
+                        </form>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <div class="text-muted fst-italic">Документы отсутствуют.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info text-center mt-5">Документы ещё не добавлены.</div>
+  {% endif %}
+</div>
 {% endblock %}

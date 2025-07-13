@@ -1,3 +1,8 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
 {% if form.errors %}
     <p>Ваше имя пользователя и пароль не совпадают. Попробуйте еще раз.</p>
 {% endif %}
@@ -8,7 +13,7 @@
             proceed, please login wich an account that has access</p>
 
     {% else %}
-        <p>Please login to see this page</p>
+        <p>Пожалуйста, войдите в систему для просмотра этой страницы</p>
     {% endif %}
 {% endif %}
 
@@ -24,9 +29,10 @@
             <td>{{ form.password }}</td>
         </tr>
     </table>
-    <input type="submit" value="login" />
+    <input type="submit" value="Войти" />
     <input type="hidden" name="next" value="{{ next }}" />
 </form>
-<p><a href="{% url 'password_reset' %}">Lost password</a> </p>
+<p><a href="{% url 'password_reset' %}">Забыли пароль?</a> </p>
 
 
+{% endblock %}

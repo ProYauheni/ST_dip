@@ -1,21 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
+  {% if payment_info %}
+    <div>
+      <h3>Членские взносы</h3>
+      <p><strong>Размер:</strong> {{ payment_info.membership_fee_amount|default:"Не указано" }} BYN</p>
+      <p><strong>Срок оплаты:</strong> {{ payment_info.membership_fee_due_date|date:"d.m.Y"|default:"Не указано" }}</p>
+      <p><strong>Инструкция по оплате:</strong><br>{{ payment_info.membership_fee_instruction|linebreaks }}</p>
 
+      <h3>Дополнительные взносы</h3>
+      <p><strong>Размер:</strong> {{ payment_info.additional_fee_amount|default:"Не указано" }} BYN</p>
+      <p><strong>Срок оплаты:</strong> {{ payment_info.additional_fee_due_date|date:"d.m.Y"|default:"Не указано" }}</p>
 
-{% if payment_info %}
-  <div>
-    <h3>Членские взносы</h3>
-    <p><strong>Размер:</strong> {{ payment_info.membership_fee_amount|default:"Не указано" }} BYN</p>
-    <p><strong>Срок оплаты:</strong> {{ payment_info.membership_fee_due_date|date:"d.m.Y"|default:"Не указано" }}</p>
-    <p><strong>Инструкция по оплате:</strong><br>{{ payment_info.membership_fee_instruction|linebreaks }}</p>
-
-    <h3>Дополнительные взносы</h3>
-    <p><strong>Размер:</strong> {{ payment_info.additional_fee_amount|default:"Не указано" }} BYN</p>
-    <p><strong>Срок оплаты:</strong> {{ payment_info.additional_fee_due_date|date:"d.m.Y"|default:"Не указано" }}</p>
-  </div>
-{% else %}
-  <p>Информация об оплате отсутствует.</p>
-{% endif %}
-
+      {% if user.is_authenticated %}
+        {% if user.profile.role == 'chairman' or user.profile.role == 'board_member' %}
+          <a href="{% url 'payment_edit' %}" class="btn btn-primary mt-3">Редактировать</a>
+          <a href="{% url 'payment_delete' %}" class="btn btn-danger mt-3 ms-2">Удалить</a>
+        {% endif %}
+      {% endif %}
+    </div>
+  {% else %}
+    <p>Информация об оплате отсутствует.</p>
+    {% if user.is_authenticated %}
+      {% if user.profile.role == 'chairman' or user.profile.role == 'board_member' %}
+        <a href="{% url 'payment_edit' %}" class="btn btn-primary mt-3">Добавить информацию по оплате</a>
+      {% endif %}
+    {% endif %}
+  {% endif %}
 {% endblock %}

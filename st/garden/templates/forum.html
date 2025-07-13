@@ -1,15 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Форум</h1>
-<ul>
+<h2 class="text-center mb-4">Форум</h2>
+
+<div class="d-flex flex-wrap gap-3">
   {% for post in posts %}
-    <li>
-      <a href="{% url 'forum_post_detail' post.pk %}">{{ post.title }}</a>
-      <small>({{ post.created_at|date:"d.m.Y H:i" }})</small>
-    </li>
+    <a href="{% url 'forum_post_detail' post.pk %}"
+   class="text-decoration-none flex-grow-0 rounded p-3 d-flex flex-column justify-content-center align-items-center"
+   style="flex-basis: calc(33.333% - 1rem); min-width: 250px; height: 150px; transition: background-color 0.3s ease; background-color: rgba(213, 237, 218, 1);">
+
+      <span class="h5 text-dark text-center mb-2">{{ post.title }}</span>
+      <span class="text-muted small text-center">{{ post.created_at|date:"d.m.Y H:i" }}</span>
+    </a>
   {% empty %}
-    <li>Постов пока нет.</li>
+    <div class="bg-light p-3 rounded text-center">Постов пока нет.</div>
   {% endfor %}
-</ul>
+</div>
+
+<style>
+  a.bg-success:hover, a.bg-success:focus {
+    background-color: rgba(40, 167, 69, 0.5) !important; /* чуть более насыщенный светло-зелёный */
+    text-decoration: none;
+  }
+</style>
 {% endblock %}

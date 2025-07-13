@@ -1,14 +1,18 @@
+from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import Profile, ForumPost, Advertisement, News, Voting, Vote, PageVisit, Appeal, Community, Document, \
-    Comment
-from .forms import AppealForm, AppealResponseForm, DocumentForm, CommentForm, AdvertisementForm
+from .models import Profile, ForumPost, Advertisement, News, Voting, Vote, Voting, PageVisit, Appeal, Community, Document, \
+    Comment, DocumentFolder, PaymentInfo
+from .forms import AppealForm, AppealResponseForm, DocumentForm, CommentForm, AdvertisementForm, NewsForm, VotingForm, \
+    PaymentInfoForm, CommunityPaymentInfoForm
 from django.contrib import messages
 from django.utils import timezone
 from django.http import HttpResponseForbidden
 
 from django.urls import reverse
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Prefetch
+
+from django.views.decorators.http import require_POST
 
 
 def main_page(request):
@@ -87,7 +91,7 @@ def create_advertisement(request):
             ad = form.save(commit=False)
             ad.owner = request.user
             ad.save()
-            return redirect('ads')  # замените на нужный URL после создания
+            return redirect('ads')
     else:
         form = AdvertisementForm()
     return render(request, 'create_ads.html', {'form': form})
@@ -138,6 +142,36 @@ def voting_list(request):
 
 
 @login_required
+def voting_create(request, community_id):
+    if not user_can_manage_votes(request.user):
+        messages.error(request, "У вас нет прав создавать голосования.")
+        return redirect('voting_overview')
+
+    # Проверяем, что пользователь связан с этим сообществом
+    community = get_object_or_404(Community, pk=community_id)
+    profile = getattr(request.user, 'profile', None)
+    if not profile or profile.community_id != community.id:
+        messages.error(request, "Вы не принадлежите этому сообществу.")
+        return redirect('voting_overview')
+
+    if request.method == 'POST':
+        form = VotingForm(request.POST)
+        if form.is_valid():
+            voting = form.save(commit=False)
+            voting.community = community  # фиксируем сообщество
+            voting.save()
+            messages.success(request, "Голосование успешно создано.")
+            return redirect('voting_overview')
+    else:
+        form = VotingForm(initial={'community': community})
+
+    return render(request, 'voting_create.html', {'form': form, 'community': community})
+
+
+
+
+
+@login_required
 def my_community(request):
     profile = get_object_or_404(Profile, user=request.user)
     news = News.objects.filter(community=profile.community)
@@ -147,6 +181,14 @@ def my_community(request):
         'news': news,
         'votings': votings
     })
+
+
+
+
+
+def user_can_manage_votes(user):
+    profile = getattr(user, 'profile', None)
+    return profile is not None and profile.role in ['chairman', 'board_member']
 
 
 @login_required
@@ -184,6 +226,66 @@ def voting_detail(request, voting_id):
     })
 
 
+
+
+@login_required
+def voting_overview(request):
+    can_manage = user_can_manage_votes(request.user)
+
+    if request.user.is_superuser or request.user.is_staff:
+        votings = Voting.objects.annotate(
+            total_votes=Count('vote'),
+            votes_for=Count('vote', filter=Q(vote__choice=True)),
+            votes_against=Count('vote', filter=Q(vote__choice=False))
+        ).order_by('-created_at')
+        # Для админа можно выбрать первое сообщество или убрать кнопку создания
+        community = None
+    else:
+        communities = Profile.objects.filter(
+            user=request.user,
+            role__in=['chairman', 'board_member']
+        ).values_list('community', flat=True)
+        votings = Voting.objects.filter(community__in=communities).annotate(
+            total_votes=Count('vote'),
+            votes_for=Count('vote', filter=Q(vote__choice=True)),
+            votes_against=Count('vote', filter=Q(vote__choice=False))
+        ).order_by('-created_at')
+        # Если у пользователя одно сообщество, передаем его
+        community = None
+        if communities:
+            from .models import Community
+            community = Community.objects.filter(id__in=communities).first()
+
+    context = {
+        'votings': votings,
+        'can_manage': can_manage,
+        'community': community,
+    }
+    return render(request, 'voting_overview.html', context)
+
+
+@login_required
+@require_POST
+def finish_voting(request, voting_id):
+    voting = get_object_or_404(Voting, id=voting_id)
+
+    if not user_can_manage_votes(request.user):
+        messages.error(request, "У вас нет прав завершать голосования.")
+        return redirect('voting_overview')
+
+    if not voting.active:
+        messages.info(request, "Голосование уже завершено.")
+        return redirect('voting_overview')
+
+    voting.active = False
+    voting.save()
+    messages.success(request, f"Голосование «{voting.question}» успешно завершено.")
+    return redirect('voting_overview')
+
+
+
+
+
 @login_required
 def forum_post_create(request):
     if request.method == 'POST':
@@ -196,6 +298,10 @@ def forum_post_create(request):
             error = "Пожалуйста, заполните все поля."
             return render(request, 'forum_post_create.html', {'error': error})
     return render(request, 'forum_post_create.html')
+
+def user_is_board_member(user):
+    profile = getattr(user, 'profile', None)
+    return profile is not None and profile.role in ['chairman', 'board_member']
 
 
 @login_required
@@ -219,14 +325,11 @@ def appeal_list(request):
     return render(request, 'appeal_list.html', {'appeals': appeals})
 
 
-def is_board_member(user):
-    return user.groups.filter(name__in=['Председатель', 'Правление']).exists()
-
-
 @login_required
-@user_passes_test(is_board_member)
+@user_passes_test(user_is_board_member)
 def appeal_detail_and_respond(request, appeal_id):
     appeal = get_object_or_404(Appeal, id=appeal_id)
+    profile = get_object_or_404(Profile, user=request.user)
 
     if request.method == 'POST':
         form = AppealResponseForm(request.POST, instance=appeal)
@@ -243,15 +346,17 @@ def appeal_detail_and_respond(request, appeal_id):
     context = {
         'appeal': appeal,
         'form': form,
+        'community': profile.community,
     }
     return render(request, 'appeal_detail_and_respond.html', context)
 
 
 @login_required
-@user_passes_test(is_board_member)
+@user_passes_test(user_is_board_member)
 def all_appeals_list(request):
+    profile = get_object_or_404(Profile, user=request.user)
     appeals = Appeal.objects.all().order_by('-created_at')
-    return render(request, 'all_appeals_list.html', {'appeals': appeals})
+    return render(request, 'all_appeals_list.html', {'appeals': appeals, 'community': profile.community})
 
 
 # @login_required
@@ -273,71 +378,72 @@ def all_appeals_list(request):
 #     }
 #     return render(request, 'voting_report.html', context)
 
-@login_required
-def voting_overview(request):
-    # Если пользователь администратор — показываем всё
-    if request.user.is_superuser or request.user.is_staff:
-        votings = Voting.objects.annotate(
-            total_votes=Count('vote'),
-            votes_for=Count('vote', filter=Q(vote__choice=True)),
-            votes_against=Count('vote', filter=Q(vote__choice=False))
-        ).order_by('-created_at')
-    else:
-        # Обычная логика — показывать только свои товарищества, если не админ
-        communities = Profile.objects.filter(
-            user=request.user,
-            role__in=['chairman', 'board_member']
-        ).values_list('community', flat=True)
-        votings = Voting.objects.filter(community__in=communities).annotate(
-            total_votes=Count('vote'),
-            votes_for=Count('vote', filter=Q(vote__choice=True)),
-            votes_against=Count('vote', filter=Q(vote__choice=False))
-        ).order_by('-created_at')
 
-    context = {
-        'votings': votings,
-    }
-    return render(request, 'voting_overview.html', context)
-
+def user_can_manage_documents(user):
+    profile = getattr(user, 'profile', None)
+    return profile is not None and profile.role in ['chairman', 'board_member']
 
 @login_required
 def documents_list(request, community_id):
-    community = get_object_or_404(Community, id=community_id)
-
-    # Проверка прав доступа: пользователь должен принадлежать к этому сообществу или быть админом
-    if not (request.user.is_superuser or request.user.is_staff or request.user.profile.community == community):
-        return HttpResponseForbidden("Доступ запрещён")
-
-    documents = community.documents.all().order_by('-uploaded_at')
-    return render(request, 'documents_list.html', {'community': community, 'documents': documents})
-
+    community = get_object_or_404(Community, pk=community_id)
+    folders = community.folders.prefetch_related(
+        models.Prefetch(
+            'documents',
+            queryset=Document.objects.filter(is_deleted=False)
+        )
+    )
+    is_chairman_or_board = user_can_manage_documents(request.user)
+    context = {
+        'community': community,
+        'folders': folders,
+        'is_chairman_or_board': is_chairman_or_board,
+    }
+    return render(request, 'documents_list.html', context)
 
 @login_required
-def upload_document(request, community_id):
-    community = get_object_or_404(Community, id=community_id)
-
-    # Проверка прав доступа (например, только председатель и члены правления)
-    if not (request.user.is_superuser or request.user.is_staff or
-            (request.user.profile.community == community and request.user.profile.role in ['chairman',
-                                                                                           'board_member'])):
-        return HttpResponseForbidden("Доступ запрещён")
+def add_document(request, community_id):
+    community = get_object_or_404(Community, pk=community_id)
+    if not user_can_manage_documents(request.user):
+        messages.error(request, "У вас нет прав для добавления документов.")
+        return redirect('documents_list', community_id=community.id)
 
     if request.method == 'POST':
-        form = DocumentForm(request.POST, request.FILES)
+        form = DocumentForm(request.POST, request.FILES, community=community)
         if form.is_valid():
             document = form.save(commit=False)
             document.community = community
             document.save()
+            messages.success(request, "Документ успешно добавлен.")
             return redirect('documents_list', community_id=community.id)
     else:
-        form = DocumentForm()
+        form = DocumentForm(community=community)
 
-    return render(request, 'upload_document.html', {'form': form, 'community': community})
+    return render(request, 'add_document.html', {'form': form, 'community': community})
 
+@login_required
+def delete_document(request, pk):
+    document = get_object_or_404(Document, pk=pk)
+    if not user_can_manage_documents(request.user):
+        messages.error(request, "У вас нет прав для удаления документов.")
+        return redirect('documents_list', community_id=document.community.id)
+
+    if request.method == 'POST':
+        # Мягкое удаление
+        document.delete()
+        messages.success(request, "Документ успешно удалён.")
+        return redirect('documents_list', community_id=document.community.id)
+
+    return render(request, 'confirm_delete_document.html', {'document': document})
+
+
+
+def user_can_manage_contacts(user):
+    profile = getattr(user, 'profile', None)
+    return profile is not None and profile.role in ['chairman', 'board_member']
 
 @login_required
 def contacts_view(request):
-    community = request.user.profile.community  # или другой способ получить сообщество пользователя
+    community = request.user.profile.community
 
     contacts = {
         'chairman': community.board_members.filter(role='chairman').first(),
@@ -352,6 +458,25 @@ def contacts_view(request):
         'contacts': contacts,
     })
 
+@login_required
+def community_contact_edit(request):
+    community = request.user.profile.community
+
+    if not user_can_manage_contacts(request.user):
+        messages.error(request, "У вас нет прав редактировать контактную информацию.")
+        return redirect('community_contacts')
+
+    if request.method == 'POST':
+        form = CommunityPaymentInfoForm(request.POST, instance=community)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Информация успешно обновлена.")
+            return redirect('community_contacts')
+    else:
+        form = CommunityPaymentInfoForm(instance=community)
+
+    return render(request, 'community_contact_edit.html', {'form': form, 'community': community})
+
 
 @login_required
 def payment_view(request):
@@ -361,6 +486,52 @@ def payment_view(request):
         'community': community,
         'payment_info': payment_info,
     })
+
+def user_can_manage_payments(user):
+    profile = getattr(user, 'profile', None)
+    return profile is not None and profile.role in ['chairman', 'board_member']
+
+@login_required
+def payment_edit(request):
+    community = request.user.profile.community
+    if not user_can_manage_payments(request.user):
+        messages.error(request, "У вас нет прав редактировать информацию по оплате.")
+        return redirect('payment_view')
+
+    payment_info, created = PaymentInfo.objects.get_or_create(community=community)
+
+    if request.method == 'POST':
+        form = PaymentInfoForm(request.POST, instance=payment_info)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Информация по оплате успешно сохранена.")
+            return redirect('payment_view')
+    else:
+        form = PaymentInfoForm(instance=payment_info)
+
+    return render(request, 'payment_edit.html', {'form': form, 'community': community})
+
+@login_required
+def payment_delete(request):
+    community = request.user.profile.community
+    if not user_can_manage_payments(request.user):
+        messages.error(request, "У вас нет прав удалять информацию по оплате.")
+        return redirect('payment_view')
+
+    payment_info = getattr(community, 'payment_info', None)
+    if not payment_info:
+        messages.error(request, "Информация по оплате не найдена.")
+        return redirect('payment_view')
+
+    if request.method == 'POST':
+        payment_info.delete()
+        messages.success(request, "Информация по оплате удалена.")
+        return redirect('payment_view')
+
+    return render(request, 'payment_confirm_delete.html', {'payment_info': payment_info})
+
+
+
 
 
 def is_admin(user):
@@ -372,11 +543,91 @@ def profile_view(request):
     user = request.user
     appeals = user.appeals.order_by('-created_at')
 
-    # Проверяем, состоит ли пользователь в нужных группах
-    allowed_groups = ['Председатель', 'Правление']  # или ['Председатель', 'Правление']
-    is_chairman_or_board = user.groups.filter(name__in=allowed_groups).exists()
+    profile = getattr(user, 'profile', None)
+    user_role = getattr(profile, 'role', 'member') if profile else 'member'
 
-    return render(request, 'profile.html', {
+    context = {
         'appeals': appeals,
+        'user_role': user_role,
+    }
+    return render(request, 'profile.html', context)
+
+
+
+
+
+def user_can_manage_news(user):
+    profile = getattr(user, 'profile', None)
+    return profile is not None and profile.role in ['chairman', 'board_member']
+
+@login_required
+def my_community_view(request):
+    # Получаем сообщество пользователя (замените на вашу логику)
+    community = getattr(request.user.profile, 'community', None)
+    if not community:
+        messages.error(request, "Сообщество для пользователя не найдено.")
+        return redirect('profile')  # или другая страница
+
+    news = community.news.filter(is_deleted=False).order_by('-created_at')
+    is_chairman_or_board = user_can_manage_news(request.user)
+
+    context = {
+        'community': community,
+        'news': news,
         'is_chairman_or_board': is_chairman_or_board,
-    })
+    }
+    return render(request, 'my_community.html', context)
+
+@login_required
+def add_news(request, community_id):
+    community = get_object_or_404(Community, pk=community_id)
+    if not user_can_manage_news(request.user):
+        messages.error(request, "У вас нет прав для добавления новостей.")
+        return redirect('my_community')
+
+    if request.method == 'POST':
+        form = NewsForm(request.POST)
+        if form.is_valid():
+            news = form.save(commit=False)
+            news.community = community
+            news.save()
+            messages.success(request, "Новость успешно добавлена.")
+            return redirect('my_community')
+    else:
+        form = NewsForm()
+
+    return render(request, 'add_news.html', {'form': form, 'community': community})
+
+@login_required
+def delete_news(request, pk):
+    news = get_object_or_404(News, pk=pk)
+    if not user_can_manage_news(request.user):
+        messages.error(request, "У вас нет прав для удаления новостей.")
+        return redirect('my_community')
+
+    if request.method == 'POST':
+        news.is_deleted = True
+        news.save()
+        messages.success(request, "Новость успешно удалена.")
+        return redirect('my_community')
+
+    return render(request, 'confirm_delete_news.html', {'news': news})
+
+
+@login_required
+def edit_news(request, pk):
+    news = get_object_or_404(News, pk=pk)
+    if not user_can_manage_news(request.user):
+        messages.error(request, "У вас нет прав для редактирования новостей.")
+        return redirect('my_community')
+
+    if request.method == 'POST':
+        form = NewsForm(request.POST, instance=news)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Новость успешно обновлена.")
+            return redirect('my_community')
+    else:
+        form = NewsForm(instance=news)
+
+    return render(request, 'edit_news.html', {'form': form, 'news': news})

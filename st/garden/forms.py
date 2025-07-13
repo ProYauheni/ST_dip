@@ -1,5 +1,5 @@
 from django import forms
-from .models import Appeal, Document, Comment, Advertisement
+from .models import Appeal, Document, Comment, Advertisement, News, DocumentFolder, Voting, PaymentInfo, Community
 
 class AppealForm(forms.ModelForm):
     class Meta:
@@ -24,9 +24,23 @@ class AppealResponseForm(forms.ModelForm):
 
 
 class DocumentForm(forms.ModelForm):
+    folder = forms.ModelChoiceField(
+        queryset=DocumentFolder.objects.none(),
+        required=True,
+        label='Папка'
+    )
+
     class Meta:
         model = Document
-        fields = ['doc_type', 'title', 'file']
+        fields = ['folder', 'doc_type', 'title', 'file']
+
+    def __init__(self, *args, **kwargs):
+        community = kwargs.pop('community', None)
+        super().__init__(*args, **kwargs)
+        if community:
+            self.fields['folder'].queryset = DocumentFolder.objects.filter(community=community)
+        else:
+            self.fields['folder'].queryset = DocumentFolder.objects.none()
 
 
 
@@ -52,10 +66,64 @@ class AdvertisementForm(forms.ModelForm):
             'title': 'Заголовок',
             'description': 'Описание',
             'photo': 'Фото',
-            'contact': 'Контакт для связи',  # можно явно указать метку, но если есть verbose_name, Django подставит его автоматически
+            'contact': 'Контакт для связи',
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
             'contact': forms.TextInput(attrs={'placeholder': 'Телефон, email или другой контакт'}),
         }
 
+    def clean_contact(self):
+        contact = self.cleaned_data.get('contact')
+        if not contact or contact.strip() == '':
+            raise forms.ValidationError('Поле "Контакт для связи" обязательно для заполнения.')
+        return contact
+
+
+class NewsForm(forms.ModelForm):
+    class Meta:
+        model = News
+        fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+        }
+
+
+
+class VotingForm(forms.ModelForm):
+    class Meta:
+        model = Voting
+        fields = ['community', 'question']
+        widgets = {
+            'community': forms.HiddenInput(),  # Сообщество фиксируем из контекста
+        }
+
+
+
+class PaymentInfoForm(forms.ModelForm):
+    class Meta:
+        model = PaymentInfo
+        fields = [
+            'membership_fee_amount',
+            'membership_fee_due_date',
+            'membership_fee_instruction',
+            'additional_fee_amount',
+            'additional_fee_due_date',
+        ]
+        widgets = {
+            'membership_fee_due_date': forms.DateInput(attrs={'type': 'date'}),
+            'additional_fee_due_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+
+class CommunityPaymentInfoForm(forms.ModelForm):
+    class Meta:
+        model = Community
+        fields = ['legal_address', 'postal_address', 'bank_details', 'additional_info']
+        widgets = {
+            'legal_address': forms.Textarea(attrs={'rows': 1, 'style': 'width: 700px;'}),
+            'postal_address': forms.Textarea(attrs={'rows': 1, 'style': 'width: 730px;'}),
+            'bank_details': forms.Textarea(attrs={'rows': 2, 'style': 'width: 684px;'}),
+            'additional_info': forms.Textarea(attrs={'rows': 3, 'style': 'width: 630px;'}),
+        }

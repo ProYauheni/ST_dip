@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Community, Profile, News, ForumPost, Advertisement, Voting, Document, BoardMember, PaymentInfo
+from .models import Community, Profile, News, ForumPost, Advertisement, Voting, Document, BoardMember, PaymentInfo, DocumentFolder
 
 # Регистрируем каждую модель в админке
 admin.site.register(Community)
@@ -9,6 +9,8 @@ admin.site.register(ForumPost)
 admin.site.register(Advertisement)
 admin.site.register(Voting)
 admin.site.register(Document)
+admin.site.register(DocumentFolder)
+
 
 class BoardMemberAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'role', 'community', 'plot_number', 'phone')

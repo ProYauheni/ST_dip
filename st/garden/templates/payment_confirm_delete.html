@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Удаление информации по оплате для СТ «{{ payment_info.community.name }}»</h2>
+
+<p>Вы уверены, что хотите удалить информацию по оплате? Это действие нельзя отменить.</p>
+
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Удалить</button>
+  <a href="{% url 'payment_view' %}" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

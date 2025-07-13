@@ -3,34 +3,186 @@
 {% block title %}Список объявлений{% endblock %}
 
 {% block content %}
-<h1>Список объявлений</h1>
+<h2 class="text-center mb-4">Список объявлений</h2>
 
 {% if ads %}
-  <ul style="list-style: none; padding: 0;">
+  <div class="d-flex flex-wrap justify-content-start gap-4">
     {% for ad in ads %}
-      <li style="margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 15px;">
-        <h3>{{ ad.title }}</h3>
-        <p>{{ ad.description|linebreaks }}</p>
+      <div class="ad-card bg-light-green border rounded p-3 d-flex flex-column align-items-center" style="width: 210px; min-height: 340px;">
+        <h5 class="text-center mb-2">{{ ad.title }}</h5>
+
+        <div class="ad-description description-truncate-5 mb-2" id="desc-{{ forloop.counter }}">
+          {{ ad.description|linebreaksbr }}
+        </div>
+        <button class="btn btn-link p-0 read-more-btn" data-target="desc-{{ forloop.counter }}" style="display:none;">
+          Читать полностью
+        </button>
 
         {% if ad.photo %}
-          <img src="{{ ad.photo.url }}" alt="{{ ad.title }}" style="max-width: 300px; height: auto; margin-top: 10px; border: 1px solid #ccc; padding: 5px;">
+          <img src="{{ ad.photo.url }}" alt="{{ ad.title }}" class="ad-photo" data-full="{{ ad.photo.url }}">
         {% endif %}
 
-        <p><strong>Контакт для связи:</strong> {{ ad.contact }}</p>
-        <p><small>Опубликовано: {{ ad.created_at|date:"d.m.Y H:i" }}</small></p>
-        <p><small>Автор: {{ ad.owner.get_full_name|default:ad.owner.username }}</small></p>
+        <div class="mb-1" style="font-size: 0.9em;">
+          <strong>Контакт:</strong> {{ ad.contact }}
+        </div>
+        <div class="mb-1" style="font-size: 0.8em;">
+          <small>Опубликовано: {{ ad.created_at|date:"d.m.Y H:i" }}</small>
+        </div>
+        <div class="mb-2" style="font-size: 0.8em;">
+          <small>Автор: {{ ad.owner.get_full_name|default:ad.owner.username }}</small>
+        </div>
 
         {% if user.is_authenticated and ad.owner == user %}
-          <p>
+          <div class="mt-auto">
             <a href="{% url 'edit_advertisement' ad.pk %}">Редактировать</a> |
             <a href="{% url 'delete_advertisement' ad.pk %}">Удалить</a>
-          </p>
+          </div>
         {% endif %}
-      </li>
+      </div>
     {% endfor %}
-  </ul>
+  </div>
 {% else %}
-  <p>Объявления отсутствуют.</p>
+  <p class="text-center">Объявления отсутствуют.</p>
 {% endif %}
+
+<!-- Модальное окно для увеличения фото -->
+<div id="modal-photo" class="modal-photo" style="display:none;">
+  <span class="modal-close">&times;</span>
+  <img class="modal-content" id="modal-img" alt="Увеличенное фото">
+</div>
+
+<style>
+  /* Светло-зелёный фон и рамка для карточек */
+  .bg-light-green {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  .ad-card.bg-light-green {
+    border-color: #c3e6cb;
+  }
+
+  /* Ограничение описания 5 строк */
+  .description-truncate-5 {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+  }
+  .description-expanded {
+    -webkit-line-clamp: unset !important;
+    overflow: visible !important;
+  }
+
+  /* Стили для фото */
+  .ad-photo {
+    max-width: 120px;
+    height: auto;
+    object-fit: contain;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    padding: 3px;
+    margin: 10px 0;
+  }
+
+  /* Модальное окно */
+  .modal-photo {
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-photo .modal-content {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 4px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  }
+  .modal-photo .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    transition: color 1.5s ease;
+  }
+  .modal-photo .modal-close:hover {
+    color: #bbb;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Раскрытие описания
+    const descriptions = document.querySelectorAll('.ad-description');
+    descriptions.forEach(desc => {
+      const btn = desc.nextElementSibling;
+      if (!btn || !btn.classList.contains('read-more-btn')) return;
+
+      const clone = desc.cloneNode(true);
+      clone.style.position = 'absolute';
+      clone.style.visibility = 'hidden';
+      clone.style.height = 'auto';
+      clone.style.webkitLineClamp = 'unset';
+      clone.style.display = 'block';
+      clone.style.overflow = 'visible';
+      clone.style.whiteSpace = 'normal';
+      clone.style.width = desc.offsetWidth + 'px';
+      document.body.appendChild(clone);
+
+      const fullHeight = clone.offsetHeight;
+      const limitedHeight = desc.offsetHeight;
+
+      document.body.removeChild(clone);
+
+      if (fullHeight > limitedHeight) {
+        btn.style.display = 'inline';
+        btn.addEventListener('click', () => {
+          if (desc.classList.contains('description-expanded')) {
+            desc.classList.remove('description-expanded');
+            btn.textContent = 'Читать полностью';
+          } else {
+            desc.classList.add('description-expanded');
+            btn.textContent = 'Свернуть';
+          }
+        });
+      }
+    });
+
+    // Увеличение фото
+    const modal = document.getElementById('modal-photo');
+    const modalImg = document.getElementById('modal-img');
+    const modalClose = modal.querySelector('.modal-close');
+
+    document.querySelectorAll('.ad-photo').forEach(img => {
+      img.addEventListener('click', () => {
+        modal.style.display = 'flex';
+        modalImg.src = img.dataset.full || img.src;
+        modalImg.alt = img.alt || 'Фото объявления';
+      });
+    });
+
+    modalClose.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  });
+</script>
 
 {% endblock %}

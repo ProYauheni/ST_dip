@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Все обращения пользователей</h2>
+<h2 class="text-center align-middle">Все обращения СТ «{{ community.name }}»</h2>
 <table class="table">
     <thead>
         <tr>
@@ -47,5 +47,7 @@
         {% endfor %}
     </tbody>
 </table>
+
+
 {% endblock %}
 

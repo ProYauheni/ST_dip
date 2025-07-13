@@ -1,3 +1,6 @@
+{% extends 'base.html' %}
+
+{% block content %}
 <h2>Удалить объявление: {{ ad.title }}</h2>
 
 <p>Вы уверены, что хотите удалить это объявление?</p>
@@ -7,3 +10,4 @@
   <button type="submit" class="btn btn-danger">Удалить</button>
   <a href="{% url 'ads' %}">Отмена</a>
 </form>
+{% endblock %}

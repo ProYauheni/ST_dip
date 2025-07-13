@@ -7,6 +7,12 @@ class Community(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
 
+    legal_address = models.TextField("Юридический адрес", blank=True, null=True)
+    postal_address = models.TextField("Почтовый адрес", blank=True, null=True)
+    bank_details = models.TextField("Банковские реквизиты", blank=True, null=True)
+    additional_info = models.TextField("Дополнительная информация", blank=True, null=True)
+
+
     def __str__(self):
         return self.name
 
@@ -34,10 +40,11 @@ def is_chairman_or_board_member(user, community):
 
 
 class News(models.Model):
-    community = models.ForeignKey(Community, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
-    content = models.TextField()
+    community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='news')
+    title = models.CharField(max_length=200, verbose_name='Заголовок')
+    content = models.TextField(verbose_name='Описание новости')
     created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)  # Поле мягкого удаления
 
     def __str__(self):
         return self.title
@@ -73,7 +80,7 @@ class Advertisement(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     photo = models.ImageField(upload_to='ads_photos/', blank=True, null=True)
-    contact = models.CharField(max_length=100, verbose_name='Контакт для связи', default='не указан')  # новое обязательное поле
+    contact = models.CharField(max_length=100, verbose_name='Контакт для связи')  # новое обязательное поле
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='advertisements')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -135,6 +142,15 @@ class Appeal(models.Model):
         return f"{self.get_appeal_type_display()} от {self.user.username} ({self.created_at.date()})"
 
 
+
+
+class DocumentFolder(models.Model):
+    name = models.CharField(max_length=255)
+    community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name='folders')
+
+    def __str__(self):
+        return self.name
+
 class Document(models.Model):
     DOC_TYPE_CHOICES = [
         ('charter', 'Уставные документы'),
@@ -144,14 +160,21 @@ class Document(models.Model):
         ('other', 'Другая нормативная документация'),
     ]
 
-    community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='documents')
-    doc_type = models.CharField(max_length=20, choices=DOC_TYPE_CHOICES)
-    title = models.CharField(max_length=255)
+    community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name='documents')
+    folder = models.ForeignKey(DocumentFolder, on_delete=models.PROTECT, related_name='documents', null=True, blank=True)
+    doc_type = models.CharField(max_length=20, choices=DOC_TYPE_CHOICES, verbose_name='тип документа')
+    title = models.CharField(max_length=255, verbose_name='Название документа')
     file = models.FileField(upload_to='community_documents/%Y/%m/%d/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)  # Мягкое удаление
+
+    def delete(self, *args, **kwargs):
+        # Вместо физического удаления — помечаем как удалённый
+        self.is_deleted = True
+        self.save()
 
     def __str__(self):
-        return f"{self.get_doc_type_display()} - {self.title}"
+        return f"[{self.folder.name}] {self.get_doc_type_display()} - {self.title}"
 
 
 class BoardMember(models.Model):

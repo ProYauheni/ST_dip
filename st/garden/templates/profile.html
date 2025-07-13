@@ -1,32 +1,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Личный кабинет</h1>
+<h1 class="text-center mb-4">Личный кабинет</h1>
 
 
 
+<div class="d-flex justify-content-center gap-3 flex-wrap">
 
-<a href="{% url 'password_change' %}" class="btn btn-outline-primary mb-3">Изменить пароль</a>
 
-<hr>
-<a href="{% url 'appeal_list' %}" class="btn btn-outline-primary mb-3">
-  Ваши обращения
-</a>
 
-<hr>
-{% if is_chairman_or_board %}
-  <a href="{% url 'all_appeals_list' %}" class="btn btn-outline-primary mb-3">Все обращения</a>
-{% endif %}
+    <a href="{% url 'appeal_list' %}" class="btn btn-outline-primary square-btn">Ваши обращения</a>
 
-<hr>
-<a href="{% url 'create_advertisement' %}" class="btn btn-outline-primary mb-3">
-  Подать объявление
-</a>
+    {% if user_role == 'chairman' or user_role == 'board_member' %}
+    <a href="{% url 'all_appeals_list' %}" class="btn btn-outline-primary square-btn">Все обращения</a>
+    {% endif %}
 
-<hr>
-{% if is_chairman_or_board %}
-  <a href="{% url 'voting_overview' %}" class="btn btn-outline-primary mb-3">Результаты голосования</a>
-{% endif %}
+    <a href="{% url 'create_advertisement' %}" class="btn btn-outline-primary square-btn">Подать объявление</a>
+
+    {% if user_role == 'chairman' or user_role == 'board_member' %}
+    <a href="{% url 'voting_overview' %}" class="btn btn-outline-primary square-btn">Результаты голосования</a>
+    {% endif %}
+
+    <a href="{% url 'password_change' %}" class="btn btn-outline-primary square-btn">Изменить пароль</a>
+
+</div>
+
 
 
 

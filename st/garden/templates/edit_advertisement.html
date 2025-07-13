@@ -1,3 +1,6 @@
+{% extends 'base.html' %}
+
+{% block content %}
 <h2>Редактировать объявление: {{ ad.title }}</h2>
 
 <form method="post" enctype="multipart/form-data">
@@ -7,3 +10,4 @@
   <button type="submit" class="btn btn-primary">Сохранить изменения</button>
   <a href="{% url 'ads' %}">Отмена</a>
 </form>
+{% endblock %}

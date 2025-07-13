@@ -3,17 +3,25 @@
 {% block content %}
 <h2>Список всех голосований и их результаты</h2>
 
+{% if can_manage %}
+  <div class="mb-3 text-end">
+    <a href="{% url 'voting_create' community.id %}" class="btn btn-primary">Создать голосование</a>
+  </div>
+{% endif %}
+
 {% if votings %}
     <table class="table table-striped">
         <thead>
             <tr>
                 <th>Вопрос</th>
                 <th>Сообщество</th>
-                <th>Активно</th>
-                <th>Всего голосов</th>
-                <th>Голоса "За"</th>
-                <th>Голоса "Против"</th>
-
+                <th class="text-center align-middle">Активно</th>
+                <th class="text-center align-middle">Всего голосов</th>
+                <th class="text-center align-middle">Голоса "За"</th>
+                <th class="text-center align-middle">Голоса "Против"</th>
+                {% if can_manage %}
+                <th class="text-center align-middle">Действия</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -21,11 +29,23 @@
             <tr>
                 <td>{{ voting.question }}</td>
                 <td>{{ voting.community.name }}</td>
-                <td>{% if voting.active %}Да{% else %}Нет{% endif %}</td>
-                <td>{{ voting.total_votes }}</td>
-                <td>{{ voting.votes_for }}</td>
-                <td>{{ voting.votes_against }}</td>
-
+                <td class="text-center align-middle">{% if voting.active %}Да{% else %}Нет{% endif %}</td>
+                <td class="text-center align-middle">{{ voting.total_votes }}</td>
+                <td class="text-center align-middle">{{ voting.votes_for }}</td>
+                <td class="text-center align-middle">{{ voting.votes_against }}</td>
+                {% if can_manage %}
+                <td class="text-center align-middle">
+                    {% if voting.active %}
+                    <form method="post" action="{% url 'finish_voting' voting.id %}" onsubmit="return confirm('Завершить голосование?');" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning btn-sm">Завершить голосование</button>
+                    </form>
+                    {% else %}
+                    <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
             {% endfor %}
         </tbody>
     </table>

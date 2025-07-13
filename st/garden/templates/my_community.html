@@ -2,69 +2,118 @@
 
 {% block content %}
 
-<h2>{{ community.name }}</h2>
-{% if community.description %}
-    <p>{{ community.description }}</p>
-{% endif %}
+<div class="text-center my-0">
+  <h2>Садоводческое товарищество «{{ community.name }}»</h2>
+  {% if community.description %}
+    <p class="community-description">{{ community.description }}</p>
+  {% endif %}
+</div>
 
 <hr>
 
-<h3>Новости</h3>
+<div class="d-flex justify-content-center gap-3 flex-wrap">
+
+    <a href="{% url 'profile' %}" class="btn btn-outline-primary square-btn">
+        ЛИЧНЫЙ КАБИНЕТ
+    </a>
+
+    <a href="{% url 'community_contacts' %}" class="btn btn-outline-primary square-btn">
+        КОНТАКТЫ
+    </a>
+
+    <a href="{% url 'voting_list' %}" class="btn btn-outline-primary square-btn">
+        ГОЛОСОВАНИЯ
+    </a>
+
+    <a href="{% url 'community_payment' %}" class="btn btn-outline-primary square-btn">
+        ПЛАТЕЖИ
+    </a>
+
+    <a href="{% url 'documents_list' community.id %}" class="btn btn-outline-primary square-btn">
+        ДОКУМЕНТЫ
+    </a>
+
+</div>
+
+<hr>
+
+<h3 class="text-center mb-4">Новости и важные сообщения</h3>
+
+{% if is_chairman_or_board %}
+  <div class="text-center mb-3">
+    <a href="{% url 'add_news' community.id %}" class="btn btn-success">Добавить новость</a>
+  </div>
+{% endif %}
+
 {% if news %}
-    <ul>
-        {% for item in news %}
-            <li>
-                <strong>{{ item.title }}</strong>
-                <br>
-                <small>{{ item.created_at|date:"d.m.Y H:i" }}</small>
-                <p>{{ item.content|truncatewords:30 }}</p>
-            </li>
-        {% endfor %}
-    </ul>
+<div class="row">
+    {% for item in news %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-dark" style="background-color: rgba(213, 237, 218, 1);">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ item.title }}</h5>
+                <!-- Убрали класс text-truncate-3 -->
+                <p class="card-text" id="news-content-{{ forloop.counter }}"
+                   style="overflow: hidden; max-height: 4.5em; transition: max-height 0.3s ease;">
+                    {{ item.content }}
+                </p>
+                <small class="news-date text-dark-green mt-auto" id="news-date-{{ forloop.counter }}">
+                    {{ item.created_at|date:"d.m.Y H:i" }}
+                </small>
+
+                <button class="btn btn-link p-0 mt-2 align-self-start text-dark-green read-more-btn"
+                        data-target="news-content-{{ forloop.counter }}" style="display:none;">
+                    Читать полностью
+                </button>
+
+                {% if is_chairman_or_board %}
+                <div class="mt-2 align-self-start d-flex gap-2">
+                    <a href="{% url 'edit_news' item.pk %}" class="btn btn-warning btn-sm">Редактировать</a>
+                    <form method="post" action="{% url 'delete_news' item.pk %}" onsubmit="return confirm('Удалить новость?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 {% else %}
-    <p>Пока нет новостей.</p>
+<p class="text-center">Пока нет новостей.</p>
 {% endif %}
 
-<hr>
+{% endblock %}
 
-<h3>Активные голосования</h3>
-{% if votings %}
-    <ul>
-        {% for voting in votings %}
-            <li>
-                <strong>{{ voting.question }}</strong>
-                <br>
-                <small>Начато: {{ voting.created_at|date:"d.m.Y H:i" }}</small>
-                <br>
-                <!-- Кнопка для перехода к голосованию -->
-                <a href="{% url 'voting_detail' voting.id %}" class="btn btn-primary btn-sm">
-                    Перейти к голосованию
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>Нет активных голосований.</p>
-{% endif %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const buttons = document.querySelectorAll('.read-more-btn');
 
-<hr>
+    buttons.forEach(function(button) {
+        const targetId = button.getAttribute('data-target');
+        const content = document.getElementById(targetId);
 
-<h3>Документы</h3>
+        if (!content) return;
 
-<a href="{% url 'documents_list' community.id %}" class="btn btn-outline-primary mb-3">
-    Перейти к списку документов
-</a>
+        // Показываем кнопку только если текст обрезается
+        if (content.scrollHeight > content.clientHeight + 1) { // +1 для точности
+            button.style.display = 'inline-block';
+        }
 
-<hr>
-<a href="{% url 'community_contacts' %}" class="btn btn-outline-primary mb-3">
-    Контакты
-</a>
-<hr>
-<a href="{% url 'community_payment' %}" class="btn btn-outline-primary mb-3">
-    Платежи
-</a>
-
-<hr>
-<a href="{% url 'profile' %}" class="btn btn-outline-primary mb-3">Личный кабинет</a>
-
+        button.addEventListener('click', function() {
+            if (content.style.maxHeight && content.style.maxHeight !== '4.5em') {
+                // Свернуть текст
+                content.style.maxHeight = '4.5em';
+                this.textContent = 'Читать полностью';
+            } else {
+                // Развернуть текст
+                content.style.maxHeight = content.scrollHeight + 'px';
+                this.textContent = 'Свернуть';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
