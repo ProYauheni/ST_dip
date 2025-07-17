@@ -1,79 +1,82 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2 class="text-center mb-4">Контакты СТ «{{ community.name }}»</h2>
+<div class="text-center">
+  <h2 class="mb-4">Контакты СТ «{{ community.name }}»</h2>
 
-{% if user.profile.role == 'chairman' or user.profile.role == 'board_member' %}
-  <p class="text-center mb-4"><a href="{% url 'community_contact_edit' %}" class="btn btn-warning mb-3" >Редактировать контактную информацию</a></p>
-{% endif %}
+  {% if user.profile.role == 'chairman' or user.profile.role == 'board_member' %}
+    <p class="mb-4">
+      <a href="{% url 'community_contact_edit' %}" class="btn btn-warning mb-3">Редактировать контактную информацию</a>
+    </p>
+  {% endif %}
 
-<h4>Председатель правления</h4>
-{% if contacts.chairman %}
+  <h4>Председатель правления</h4>
+  {% if contacts.chairman %}
     <p>{{ contacts.chairman.full_name }}, участок № {{ contacts.chairman.plot_number }}, телефон: {{ contacts.chairman.phone }}</p>
-{% else %}
+  {% else %}
     <p>Информация отсутствует.</p>
-{% endif %}
+  {% endif %}
 
-<h4>Казначей</h4>
-{% if contacts.treasurer %}
+  <h4>Казначей</h4>
+  {% if contacts.treasurer %}
     <p>{{ contacts.treasurer.full_name }}, участок {{ contacts.treasurer.plot_number }}, тел: {{ contacts.treasurer.phone }}</p>
-{% else %}
+  {% else %}
     <p>Информация отсутствует.</p>
-{% endif %}
+  {% endif %}
 
-<h4>Члены правления</h4>
-{% if contacts.board_members %}
-    <ul>
-        {% for member in contacts.board_members %}
-            <li>{{ member.full_name }}, участок {{ member.plot_number }}, тел: {{ member.phone }}</li>
-        {% endfor %}
+  <h4>Члены правления</h4>
+  {% if contacts.board_members %}
+    <ul class="list-unstyled">
+      {% for member in contacts.board_members %}
+        <li>{{ member.full_name }}, участок {{ member.plot_number }}, тел: {{ member.phone }}</li>
+      {% endfor %}
     </ul>
-{% else %}
+  {% else %}
     <p>Информация отсутствует.</p>
-{% endif %}
+  {% endif %}
 
-<h4>Ответственный за электрохозяйство</h4>
-{% if contacts.electricity_manager %}
+  <h4>Ответственный за электрохозяйство</h4>
+  {% if contacts.electricity_manager %}
     <p>{{ contacts.electricity_manager.full_name }}, участок {{ contacts.electricity_manager.plot_number }}, тел: {{ contacts.electricity_manager.phone }}</p>
-{% else %}
+  {% else %}
     <p>Информация отсутствует.</p>
-{% endif %}
+  {% endif %}
 
-<h4>Ответственный за водохозяйство</h4>
-{% if contacts.water_manager %}
+  <h4>Ответственный за водохозяйство</h4>
+  {% if contacts.water_manager %}
     <p>{{ contacts.water_manager.full_name }}, участок {{ contacts.water_manager.plot_number }}, тел: {{ contacts.water_manager.phone }}</p>
-{% else %}
+  {% else %}
     <p>Информация отсутствует.</p>
-{% endif %}
+  {% endif %}
 
-<hr>
+  <hr>
 
-<h4>Юридический адрес</h4>
-{% if community.legal_address %}
+  <h4>Юридический адрес</h4>
+  {% if community.legal_address %}
     <p>{{ community.legal_address|linebreaks }}</p>
-{% else %}
+  {% else %}
     <p>Информация отсутствует.</p>
-{% endif %}
+  {% endif %}
 
-<h4>Почтовый адрес</h4>
-{% if community.postal_address %}
+  <h4>Почтовый адрес</h4>
+  {% if community.postal_address %}
     <p>{{ community.postal_address|linebreaks }}</p>
-{% else %}
+  {% else %}
     <p>Информация отсутствует.</p>
-{% endif %}
+  {% endif %}
 
-<h4>Банковские реквизиты</h4>
-{% if community.bank_details %}
+  <h4>Банковские реквизиты</h4>
+  {% if community.bank_details %}
     <p>{{ community.bank_details|linebreaks }}</p>
-{% else %}
+  {% else %}
     <p>Информация отсутствует.</p>
-{% endif %}
+  {% endif %}
 
-<h4>Дополнительная информация</h4>
-{% if community.additional_info %}
+  <h4>Дополнительная информация</h4>
+  {% if community.additional_info %}
     <p>{{ community.additional_info|linebreaks }}</p>
-{% else %}
+  {% else %}
     <p>Информация отсутствует.</p>
-{% endif %}
-
+  {% endif %}
+</div>
 {% endblock %}

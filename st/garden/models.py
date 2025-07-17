@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.utils import timezone
 
 
 class Community(models.Model):
@@ -55,6 +56,7 @@ class ForumPost(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)  # поле активности
 
     def __str__(self):
         return self.title
@@ -90,22 +92,38 @@ class Advertisement(models.Model):
 
 
 class Voting(models.Model):
-    community = models.ForeignKey(Community, on_delete=models.CASCADE)
+    community = models.ForeignKey('Community', on_delete=models.CASCADE)
     question = models.CharField(max_length=255)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    start_date = models.DateTimeField(verbose_name="Дата начала голосования", default=timezone.now)
+    end_date = models.DateTimeField(verbose_name="Дата окончания голосования", default=timezone.now)
 
     def __str__(self):
         return self.question
 
 
 class Vote(models.Model):
-    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    VOTE_CHOICES = [
+        ('for', 'За'),
+        ('against', 'Против'),
+        ('abstained', 'Воздержался'),
+    ]
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE, related_name='votes')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    choice = models.BooleanField()
+    choice = models.CharField(max_length=10, choices=VOTE_CHOICES)
 
     def __str__(self):
-        return str(self.choice)
+        return f'{self.user}: {self.get_choice_display()}'
+
+# class Vote(models.Model):
+#     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     choice = models.BooleanField()
+#
+#     def __str__(self):
+#         return str(self.choice)
 
 
 class PageVisit(models.Model):

@@ -42,6 +42,11 @@ class DocumentForm(forms.ModelForm):
         else:
             self.fields['folder'].queryset = DocumentFolder.objects.none()
 
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        if file and file.size > 3 * 1024 * 1024:  # 3 МБ
+            raise forms.ValidationError("Файл превышает максимальный размер 3 МБ.")
+        return file
 
 
 class CommentForm(forms.ModelForm):
@@ -91,12 +96,63 @@ class NewsForm(forms.ModelForm):
 
 
 
+
 class VotingForm(forms.ModelForm):
     class Meta:
         model = Voting
-        fields = ['community', 'question']
+        fields = ['community', 'question', 'start_date', 'end_date']
+        labels = {
+            'question': 'Вопрос',
+            'start_date': 'Дата начала голосования',
+            'end_date': 'Дата окончания голосования',
+        }
         widgets = {
-            'community': forms.HiddenInput(),  # Сообщество фиксируем из контекста
+            'community': forms.HiddenInput(),  # Сообщество фиксируем в коде view
+            'question': forms.Textarea(attrs={
+                'style': 'width: 600px; min-height: 100px;',
+            }),
+            'start_date': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'style': 'width: 250px;',
+            }),
+            'end_date': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'style': 'width: 250px;',
+            }),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date:
+            if end_date <= start_date:
+                raise forms.ValidationError("Дата окончания должна быть позже даты начала.")
+        return cleaned_data
+
+
+class VotingEditForm(forms.ModelForm):
+    class Meta:
+        model = Voting
+        fields = ['question', 'start_date', 'end_date']  # добавили start_date
+        labels = {
+            'question': 'Вопрос',
+            'start_date': 'Дата начала голосования',
+            'end_date': 'Дата окончания голосования',
+        }
+        widgets = {
+            'question': forms.Textarea(attrs={
+                'style': 'width: 600px; min-height: 100px;',
+            }),
+            'start_date': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'style': 'width: 250px;',
+            }),
+            'end_date': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'style': 'width: 250px;',
+            }),
         }
 
 

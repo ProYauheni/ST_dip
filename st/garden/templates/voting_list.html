@@ -4,19 +4,30 @@
 <h2 class="text-center mb-4">Активные голосования вашего товарищества</h2>
 
 {% if votings %}
-    <ul class="list-group">
-        {% for voting in votings %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ voting.question }}</strong><br>
-                    <small>Начато: {{ voting.created_at|date:"d.m.Y H:i" }}</small>
-                </div>
-                <a href="{% url 'voting_detail' voting.id %}" class="btn btn-primary btn-sm">
-                    Голосовать
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Вопрос</th>
+                <th class="text-center">Начало голосования</th>
+                <th class="text-center">Завершение голосования</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for voting in votings %}
+                <tr>
+                    <td><strong>{{ voting.question }}</strong></td>
+                    <td class="text-center">{{ voting.start_date|date:"d.m.Y H:i" }}</td>
+                    <td class="text-center">{{ voting.end_date|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'voting_detail' voting.id %}" class="btn btn-primary btn-sm">
+                            Голосовать
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% else %}
     <p>В настоящее время нет активных голосований.</p>
 {% endif %}

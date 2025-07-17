@@ -1,5 +1,3 @@
-
-
 {% extends 'base.html' %}
 
 {% block content %}
@@ -7,7 +5,14 @@
 
 {% if voting_closed %}
     {% if user_vote %}
-        <p>Голосование завершено. Ваш голос: <strong>{{ user_vote.choice|yesno:"Да,Нет" }}</strong></p>
+        <p>Голосование завершено. Ваш голос:
+            <strong>
+                {% if user_vote.choice == 'for' %}За
+                {% elif user_vote.choice == 'against' %}Против
+                {% elif user_vote.choice == 'abstained' %}Воздержался
+                {% endif %}
+            </strong>
+        </p>
     {% else %}
         <p>Голосование завершено.</p>
     {% endif %}
@@ -15,13 +20,23 @@
 {% else %}
     <form method="post">
         {% csrf_token %}
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
         <label>
-            <input type="radio" name="choice" value="True" {% if user_vote and user_vote.choice %}checked{% endif %}>
-            Да
+            <input type="radio" name="choice" value="for"
+                {% if user_vote and user_vote.choice == 'for' %}checked{% endif %}>
+            За
         </label><br>
         <label>
-            <input type="radio" name="choice" value="False" {% if user_vote and not user_vote.choice %}checked{% endif %}>
-            Нет
+            <input type="radio" name="choice" value="against"
+                {% if user_vote and user_vote.choice == 'against' %}checked{% endif %}>
+            Против
+        </label><br>
+        <label>
+            <input type="radio" name="choice" value="abstained"
+                {% if user_vote and user_vote.choice == 'abstained' %}checked{% endif %}>
+            Воздержался
         </label><br><br>
         <button type="submit" class="btn btn-primary">
             {% if user_vote %}Обновить голос{% else %}Проголосовать{% endif %}
@@ -30,8 +45,4 @@
     <br>
     <a href="{% url 'voting_list' %}">Вернуться к списку голосований</a>
 {% endif %}
-
 {% endblock %}
-
-
-

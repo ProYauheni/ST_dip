@@ -20,7 +20,7 @@ urlpatterns = [
     path('votings/', views.voting_overview, name='voting_overview'),
     path('votings/<int:voting_id>/finish/', views.finish_voting, name='finish_voting'),
     path('votings/create/<int:community_id>/', views.voting_create, name='voting_create'),
-
+    path('voting/<int:voting_id>/edit/', views.voting_edit, name='voting_edit'),
     # path('voting/<int:voting_id>/report/', views.voting_report, name='voting_report'),
     path('voting/overview/', views.voting_overview, name='voting_overview'),
     path('forum/new/', views.forum_post_create, name='forum_post_create'),

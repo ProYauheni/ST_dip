@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Profile, ForumPost, Advertisement, News, Voting, Vote, Voting, PageVisit, Appeal, Community, Document, \
     Comment, DocumentFolder, PaymentInfo
 from .forms import AppealForm, AppealResponseForm, DocumentForm, CommentForm, AdvertisementForm, NewsForm, VotingForm, \
-    PaymentInfoForm, CommunityPaymentInfoForm
+    PaymentInfoForm, CommunityPaymentInfoForm, VotingEditForm
 from django.contrib import messages
 from django.utils import timezone
 from django.http import HttpResponseForbidden
@@ -27,9 +27,10 @@ def main_page(request):
     # return render(request, 'main_page.html', {'visits_num':visits_count})
 
 
+
 @login_required
 def forum(request):
-    posts = ForumPost.objects.all().order_by('-created_at')
+    posts = ForumPost.objects.filter(active=True).order_by('-created_at')
     return render(request, 'forum.html', {'posts': posts})
 
 
@@ -141,6 +142,31 @@ def voting_list(request):
     return render(request, 'voting_list.html', {'votings': votings})
 
 
+# @login_required
+# def voting_create(request, community_id):
+#     if not user_can_manage_votes(request.user):
+#         messages.error(request, "У вас нет прав создавать голосования.")
+#         return redirect('voting_overview')
+#
+#     # Проверяем, что пользователь связан с этим сообществом
+#     community = get_object_or_404(Community, pk=community_id)
+#     profile = getattr(request.user, 'profile', None)
+#     if not profile or profile.community_id != community.id:
+#         messages.error(request, "Вы не принадлежите этому сообществу.")
+#         return redirect('voting_overview')
+#
+#     if request.method == 'POST':
+#         form = VotingForm(request.POST)
+#         if form.is_valid():
+#             voting = form.save(commit=False)
+#             voting.community = community  # фиксируем сообщество
+#             voting.save()
+#             messages.success(request, "Голосование успешно создано.")
+#             return redirect('voting_overview')
+#     else:
+#         form = VotingForm(initial={'community': community})
+#
+#     return render(request, 'voting_create.html', {'form': form, 'community': community})
 @login_required
 def voting_create(request, community_id):
     if not user_can_manage_votes(request.user):
@@ -162,12 +188,37 @@ def voting_create(request, community_id):
             voting.save()
             messages.success(request, "Голосование успешно создано.")
             return redirect('voting_overview')
+        else:
+            messages.error(request, "Пожалуйста, исправьте ошибки в форме.")
     else:
-        form = VotingForm(initial={'community': community})
+        # При инициализации поля community передаём id, так как в форме HiddenInput
+        form = VotingForm(initial={'community': community.id})
 
     return render(request, 'voting_create.html', {'form': form, 'community': community})
 
 
+@login_required
+def voting_edit(request, voting_id):
+    voting = get_object_or_404(Voting, id=voting_id)
+
+    if not user_can_manage_votes(request.user):
+        messages.error(request, "У вас нет прав на редактирование этого голосования.")
+        return redirect('voting_overview')
+
+    if not voting.active:
+        messages.warning(request, "Редактирование завершённого голосования невозможно.")
+        return redirect('voting_overview')
+
+    if request.method == 'POST':
+        form = VotingEditForm(request.POST, instance=voting)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Голосование успешно обновлено.")
+            return redirect('voting_overview')
+    else:
+        form = VotingEditForm(instance=voting)
+
+    return render(request, 'voting_edit.html', {'form': form, 'voting': voting})
 
 
 
@@ -193,38 +244,30 @@ def user_can_manage_votes(user):
 
 @login_required
 def voting_detail(request, voting_id):
-    voting = get_object_or_404(Voting, id=voting_id, community=request.user.profile.community)
-
-    # Получаем существующий голос пользователя, если есть
+    voting = get_object_or_404(Voting, id=voting_id)
     user_vote = Vote.objects.filter(voting=voting, user=request.user).first()
+    voting_closed = not voting.active
 
-    if not voting.active:
-        messages.info(request, 'Голосование завершено. Вы не можете изменить свой голос.')
-        return render(request, 'voting_detail.html', {'voting': voting, 'user_vote': user_vote, 'voting_closed': True})
-
-    if request.method == 'POST':
+    if not voting_closed and request.method == 'POST':
         choice = request.POST.get('choice')
-        if choice not in ['True', 'False']:
-            messages.error(request, 'Пожалуйста, выберите вариант для голосования.')
+        if choice not in ['for', 'against', 'abstained']:
+            error = "Пожалуйста, выберите ваш вариант."
         else:
-            choice_bool = (choice == 'True')
             if user_vote:
-                # Обновляем существующий голос
-                user_vote.choice = choice_bool
+                user_vote.choice = choice
                 user_vote.save()
-                messages.success(request, 'Ваш голос обновлён.')
             else:
-                # Создаём новый голос
-                Vote.objects.create(voting=voting, user=request.user, choice=choice_bool)
-                messages.success(request, 'Ваш голос учтён.')
-            return redirect(reverse('voting_detail', args=[voting.id]))
+                Vote.objects.create(voting=voting, user=request.user, choice=choice)
+            return redirect('voting_detail', voting_id=voting_id)
+    else:
+        error = None
 
     return render(request, 'voting_detail.html', {
         'voting': voting,
         'user_vote': user_vote,
-        'voting_closed': False,
+        'voting_closed': voting_closed,
+        'error': error,
     })
-
 
 
 
@@ -234,26 +277,27 @@ def voting_overview(request):
 
     if request.user.is_superuser or request.user.is_staff:
         votings = Voting.objects.annotate(
-            total_votes=Count('vote'),
-            votes_for=Count('vote', filter=Q(vote__choice=True)),
-            votes_against=Count('vote', filter=Q(vote__choice=False))
+            total_votes=Count('votes'),
+            votes_for=Count('votes', filter=Q(votes__choice='for')),
+            votes_against=Count('votes', filter=Q(votes__choice='against')),
+            votes_abstained=Count('votes', filter=Q(votes__choice='abstained')),
         ).order_by('-created_at')
-        # Для админа можно выбрать первое сообщество или убрать кнопку создания
         community = None
     else:
         communities = Profile.objects.filter(
             user=request.user,
             role__in=['chairman', 'board_member']
         ).values_list('community', flat=True)
+
         votings = Voting.objects.filter(community__in=communities).annotate(
-            total_votes=Count('vote'),
-            votes_for=Count('vote', filter=Q(vote__choice=True)),
-            votes_against=Count('vote', filter=Q(vote__choice=False))
+            total_votes=Count('votes'),
+            votes_for=Count('votes', filter=Q(votes__choice='for')),
+            votes_against=Count('votes', filter=Q(votes__choice='against')),
+            votes_abstained=Count('votes', filter=Q(votes__choice='abstained')),
         ).order_by('-created_at')
-        # Если у пользователя одно сообщество, передаем его
+
         community = None
         if communities:
-            from .models import Community
             community = Community.objects.filter(id__in=communities).first()
 
     context = {
@@ -355,8 +399,15 @@ def appeal_detail_and_respond(request, appeal_id):
 @user_passes_test(user_is_board_member)
 def all_appeals_list(request):
     profile = get_object_or_404(Profile, user=request.user)
-    appeals = Appeal.objects.all().order_by('-created_at')
-    return render(request, 'all_appeals_list.html', {'appeals': appeals, 'community': profile.community})
+    community = profile.community
+
+    # Фильтруем обращения только по сообществу пользователя
+    appeals = Appeal.objects.filter(user__profile__community=community).order_by('-created_at')
+
+    return render(request, 'all_appeals_list.html', {
+        'appeals': appeals,
+        'community': community,
+    })
 
 
 # @login_required

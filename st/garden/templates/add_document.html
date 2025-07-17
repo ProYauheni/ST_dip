@@ -5,7 +5,40 @@
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
+    {{ form.non_field_errors }}
+
+    <p>
+        {{ form.folder.label_tag }}<br>
+        {{ form.folder }}
+        {% if form.folder.errors %}
+            <br><span class="text-danger">{{ form.folder.errors.0 }}</span>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ form.doc_type.label_tag }}<br>
+        {{ form.doc_type }}
+        {% if form.doc_type.errors %}
+            <br><span class="text-danger">{{ form.doc_type.errors.0 }}</span>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ form.title.label_tag }}<br>
+        {{ form.title }}
+        {% if form.title.errors %}
+            <br><span class="text-danger">{{ form.title.errors.0 }}</span>
+        {% endif %}
+    </p>
+
+    <p>
+        {{ form.file.label_tag }}<br>
+        {{ form.file }}
+        {% if form.file.errors %}
+            <br><span class="text-danger">{{ form.file.errors.0 }}</span>
+        {% endif %}
+    </p>
+
     <button type="submit" class="btn btn-primary">Добавить</button>
     <a href="{% url 'documents_list' community.id %}" class="btn btn-secondary">Отмена</a>
 </form>
