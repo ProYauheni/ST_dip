@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.db.models import Count, Q, Prefetch
 
 from django.views.decorators.http import require_POST
-
+from django.core.paginator import Paginator
 
 def main_page(request):
     # visits_count = request.session.get('visits_num', 0)
@@ -79,9 +79,21 @@ def forum_post_detail(request, pk):
     return render(request, 'forum_post_detail.html', context)
 
 
+# def ads(request):
+#     ads = Advertisement.objects.all().order_by('-created_at')
+#     return render(request, 'ads.html', {'ads': ads})
 def ads(request):
-    ads = Advertisement.objects.all().order_by('-created_at')
-    return render(request, 'ads.html', {'ads': ads})
+    ads_list = Advertisement.objects.all().order_by('-created_at')
+    paginator = Paginator(ads_list, 15)  # 15 объявлений на страницу
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'ads.html', {'page_obj': page_obj})
+
+
+@login_required
+def my_ads(request):
+    ads = Advertisement.objects.filter(owner=request.user).order_by('-created_at')
+    return render(request, 'my_ads.html', {'ads': ads})
 
 
 @login_required
@@ -242,11 +254,17 @@ def user_can_manage_votes(user):
     return profile is not None and profile.role in ['chairman', 'board_member']
 
 
+
 @login_required
 def voting_detail(request, voting_id):
     voting = get_object_or_404(Voting, id=voting_id)
     user_vote = Vote.objects.filter(voting=voting, user=request.user).first()
     voting_closed = not voting.active
+
+    if not request.user.profile.can_vote:
+        message = "Вам запрещено голосовать. Пожалуйста, свяжитесь с администрацией для уточнения."
+        return render(request, 'voting_list.html', {'warning_message': message})
+ 
 
     if not voting_closed and request.method == 'POST':
         choice = request.POST.get('choice')

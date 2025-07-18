@@ -3,6 +3,13 @@
 {% block content %}
 <h2 class="text-center mb-4">Активные голосования вашего товарищества</h2>
 
+{# Блок с предупреждением — если передано сообщение warning_message #}
+{% if warning_message %}
+  <div style="background-color: #fff9c4; color: #665500; padding: 15px; border: 1px solid #ffecb3; border-radius: 4px; margin-bottom: 20px; font-weight: 500;">
+    {{ warning_message }}
+  </div>
+{% endif %}
+
 {% if votings %}
     <table class="table table-striped">
         <thead>

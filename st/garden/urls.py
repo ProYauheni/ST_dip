@@ -9,6 +9,7 @@ urlpatterns = [
     path('forum/', views.forum, name='forum'),
     path('forum/<int:pk>/', views.forum_post_detail, name='forum_post_detail'),
     path('ads/', views.ads, name='ads'),
+    path('my-ads/', views.my_ads, name='my_ads'),
     path('ads/create/', views.create_advertisement, name='create_advertisement'),
     path('ads/<int:pk>/edit/', views.edit_advertisement, name='edit_advertisement'),
     path('ads/<int:pk>/delete/', views.delete_advertisement, name='delete_advertisement'),

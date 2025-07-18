@@ -5,9 +5,9 @@
 {% block content %}
 <h2 class="text-center mb-4">Список объявлений</h2>
 
-{% if ads %}
+{% if page_obj %}
   <div class="d-flex flex-wrap justify-content-start gap-4">
-    {% for ad in ads %}
+    {% for ad in page_obj %}
       <div class="ad-card bg-light-green border rounded p-3 d-flex flex-column align-items-center" style="width: 210px; min-height: 340px;">
         <h5 class="text-center mb-2">{{ ad.title }}</h5>
 
@@ -41,6 +41,42 @@
       </div>
     {% endfor %}
   </div>
+
+  <!-- Пагинация -->
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&laquo;</span>
+        </li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+          {% if num == page_obj.number %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&raquo;</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+
 {% else %}
   <p class="text-center">Объявления отсутствуют.</p>
 {% endif %}

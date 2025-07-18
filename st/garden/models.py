@@ -28,6 +28,8 @@ class Profile(models.Model):
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
 
+    can_vote = models.BooleanField(default=True, verbose_name="Разрешено голосовать")
+
     def __str__(self):
         return str(self.user)
 

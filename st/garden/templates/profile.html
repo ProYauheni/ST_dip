@@ -15,7 +15,9 @@
     <a href="{% url 'all_appeals_list' %}" class="btn btn-outline-primary square-btn">Все обращения</a>
     {% endif %}
 
-    <a href="{% url 'create_advertisement' %}" class="btn btn-outline-primary square-btn">Подать объявление</a>
+
+    <a href="{% url 'my_ads' %}" class="btn btn-outline-primary square-btn">Мои объявления</a>
+
 
     {% if user_role == 'chairman' or user_role == 'board_member' %}
     <a href="{% url 'voting_overview' %}" class="btn btn-outline-primary square-btn">Результаты голосования</a>

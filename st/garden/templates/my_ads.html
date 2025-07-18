@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Мои объявления</h1>
+
+{% if ads %}
+    <ul class="list-group">
+    {% for ad in ads %}
+        <li class="list-group-item">
+            <h5>{{ ad.title }}</h5>
+            {% if ad.photo %}
+                <img src="{{ ad.photo.url }}" alt="{{ ad.title }}" style="max-width: 200px;">
+            {% endif %}
+            <p>{{ ad.description|truncatewords:30 }}</p>
+            <p><strong>Контакт:</strong> {{ ad.contact }}</p>
+            <p><small>Опубликовано: {{ ad.created_at|date:"d.m.Y H:i" }}</small></p>
+            <a href="{% url 'edit_advertisement' ad.pk %}" class="btn btn-sm btn-primary">Редактировать</a>
+            <a href="{% url 'delete_advertisement' ad.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>У вас пока нет объявлений.</p>
+{% endif %}
+
+<a href="{% url 'create_advertisement' %}" class="btn btn-success mt-3">Подать новое объявление</a>
+
+{% endblock %}
