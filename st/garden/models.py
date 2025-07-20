@@ -29,6 +29,12 @@ class Profile(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
 
     can_vote = models.BooleanField(default=True, verbose_name="Разрешено голосовать")
+    last_seen = models.DateTimeField(null=True, blank=True)
+
+    def update_last_seen(self):
+        """Обновляет поле last_seen текущим временем"""
+        self.last_seen = timezone.now()
+        self.save(update_fields=['last_seen'])
 
     def __str__(self):
         return str(self.user)

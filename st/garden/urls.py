@@ -18,6 +18,7 @@ urlpatterns = [
     path('voting/', views.voting_list, name='voting_list'),
     path('voting/<int:voting_id>/', views.voting_detail, name='voting_detail'),
 
+
     path('votings/', views.voting_overview, name='voting_overview'),
     path('votings/<int:voting_id>/finish/', views.finish_voting, name='finish_voting'),
     path('votings/create/<int:community_id>/', views.voting_create, name='voting_create'),
@@ -42,6 +43,7 @@ urlpatterns = [
     path('payment/edit/', views.payment_edit, name='payment_edit'),
     path('payment/delete/', views.payment_delete, name='payment_delete'),
 
+    path('user_ping/', views.user_ping, name='user_ping'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/change-password/', auth_views.PasswordChangeView.as_view(
         template_name='registration/change_password.html',success_url='/profile/'), name='password_change'),

@@ -253,6 +253,9 @@
             <div class="container">
                 <small>
                     Количество посещений сайта: {{ total_visits }}
+                      &nbsp;|&nbsp;
+                    Пользователей онлайн: {{ online_users }}
+
                 </small>
             </div>
         </footer>
@@ -318,6 +321,49 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 </script>
+
+{% if user.is_authenticated %}
+<script>
+  // Получаем CSRF токен из cookie
+  function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              // Проверяем, начинается ли cookie с имени, которое нам нужно
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+  }
+
+  const csrftoken = getCookie('csrftoken');
+
+  function sendPing() {
+      fetch("{% url 'user_ping' %}", {
+          method: 'POST',
+          headers: {
+              'X-CSRFToken': csrftoken,
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}),
+          credentials: 'same-origin'
+      }).catch((e) => {
+          // Можно обработать ошибку или игнорировать
+          console.log('Ping error:', e);
+      });
+  }
+
+  // Отправляем пинг сразу и затем каждые 30 секунд
+  sendPing();
+  setInterval(sendPing, 30000);
+</script>
+{% endif %}
+
 
 
 </body>

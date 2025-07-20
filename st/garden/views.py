@@ -15,6 +15,13 @@ from django.db.models import Count, Q, Prefetch
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 
+from django.http import JsonResponse
+
+
+from django.views.decorators.csrf import csrf_exempt
+
+
+
 def main_page(request):
     # visits_count = request.session.get('visits_num', 0)
     counter, created = PageVisit.objects.get_or_create(page_name='main_page')
@@ -700,3 +707,14 @@ def edit_news(request, pk):
         form = NewsForm(instance=news)
 
     return render(request, 'edit_news.html', {'form': form, 'news': news})
+
+
+
+
+def user_ping(request):
+    if request.method == 'POST':
+        profile = request.user.profile
+        profile.last_seen = timezone.now()
+        profile.save(update_fields=['last_seen'])
+        return JsonResponse({'status': 'ok'})
+    return JsonResponse({'error': 'invalid method'}, status=405)
