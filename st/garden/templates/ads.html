@@ -6,9 +6,9 @@
 <h2 class="text-center mb-4">Список объявлений</h2>
 
 {% if page_obj %}
-  <div class="d-flex flex-wrap justify-content-start gap-4">
+  <div class="ads-container d-flex flex-wrap justify-content-start gap-3">
     {% for ad in page_obj %}
-      <div class="ad-card bg-light-green border rounded p-3 d-flex flex-column align-items-center" style="width: 210px; min-height: 340px;">
+      <div class="ad-card bg-light-green border rounded p-3 d-flex flex-column align-items-center">
         <h5 class="text-center mb-2">{{ ad.title }}</h5>
 
         <div class="ad-description description-truncate-5 mb-2" id="desc-{{ forloop.counter }}">
@@ -88,13 +88,25 @@
 </div>
 
 <style>
-  /* Светло-зелёный фон и рамка для карточек */
-  .bg-light-green {
+  .ads-container {
+    gap: 1rem;
+  }
+
+  .ad-card {
     background-color: #d4edda;
     color: #155724;
-  }
-  .ad-card.bg-light-green {
-    border-color: #c3e6cb;
+    border: 1px solid #c3e6cb;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    min-height: 340px;
+    box-sizing: border-box;
+
+    /* На большие экраны ~5 карточек в строке */
+    flex: 0 0 19%;
+    max-width: 19%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   /* Ограничение описания 5 строк */
@@ -155,6 +167,35 @@
   }
   .modal-photo .modal-close:hover {
     color: #bbb;
+  }
+
+  /* Media Queries для адаптивности */
+  @media (max-width: 1199.98px) {
+    .ad-card {
+      flex: 0 0 23%;
+      max-width: 23%; /* 4 в ряд */
+    }
+  }
+
+  @media (max-width: 991.98px) {
+    .ad-card {
+      flex: 0 0 31%;
+      max-width: 31%; /* 3 в ряд */
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .ad-card {
+      flex: 0 0 48%;
+      max-width: 48%; /* 2 в ряд */
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    .ad-card {
+      flex: 0 0 100%;
+      max-width: 100%; /* 1 в ряд */
+    }
   }
 </style>
 
