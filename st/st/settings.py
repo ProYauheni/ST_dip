@@ -29,6 +29,7 @@ SECRET_KEY = 'django-insecure-lhg3pw4-=l&v!@h#1kqp2-g+6e+i71wj!1u02l=i+iat@rb#3g
 DEBUG = True
 
 ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = ['proyauheni.pythonanywhere.com']
 
 
 # Application definition
@@ -59,7 +60,8 @@ ROOT_URLCONF = 'st.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        # 'DIRS': ['templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -85,6 +87,20 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'garden',      # имя созданной базы данных
+#         'USER': 'root',   # имя пользователя MySQL
+#         'PASSWORD': 'root795158',     # пароль пользователя
+#         'HOST': 'localhost',          # если MySQL локально, или IP/домен хоста
+#         'PORT': '3306',
+#         'OPTIONS': {
+#             'charset': 'utf8mb4',
+#         },
+#     }
+# }
 
 
 # Password validation

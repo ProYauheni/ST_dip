@@ -1,21 +1,43 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+  /* Центрируем текст внутри контейнера */
+  .payment-info-container {
+    text-align: center;
+    font-size: 1.2rem; /* Увеличить размер шрифта при необходимости */
+  }
+
+  /* Немного отступов для заголовков и кнопок */
+  .payment-info-container h3 {
+    margin-bottom: 1rem;
+  }
+  .payment-info-container p {
+    margin: 0.3rem 0;
+  }
+  .payment-info-container a.btn {
+    margin-top: 1rem;
+  }
+</style>
+
+<div class="payment-info-container">
   {% if payment_info %}
     <div>
-      <h3>Членские взносы</h3>
+      <h3>Членские взносы СТ «{{ community.name }}»:</h3>
       <p><strong>Размер:</strong> {{ payment_info.membership_fee_amount|default:"Не указано" }} BYN</p>
       <p><strong>Срок оплаты:</strong> {{ payment_info.membership_fee_due_date|date:"d.m.Y"|default:"Не указано" }}</p>
-      <p><strong>Инструкция по оплате:</strong><br>{{ payment_info.membership_fee_instruction|linebreaks }}</p>
+      <p><strong>Информация и инструкция по оплате:</strong><br>{{ payment_info.membership_fee_instruction|linebreaks }}</p>
 
-      <h3>Дополнительные взносы</h3>
+      <h3>Дополнительные взносы:</h3>
       <p><strong>Размер:</strong> {{ payment_info.additional_fee_amount|default:"Не указано" }} BYN</p>
       <p><strong>Срок оплаты:</strong> {{ payment_info.additional_fee_due_date|date:"d.m.Y"|default:"Не указано" }}</p>
+      <p><strong>Информация и инструкция по оплате:</strong><br>{{ payment_info.additional_fee_instruction|linebreaks }}</p>
+
 
       {% if user.is_authenticated %}
         {% if user.profile.role == 'chairman' or user.profile.role == 'board_member' %}
           <a href="{% url 'payment_edit' %}" class="btn btn-primary mt-3">Редактировать</a>
-          <a href="{% url 'payment_delete' %}" class="btn btn-danger mt-3 ms-2">Удалить</a>
+<!--          <a href="{% url 'payment_delete' %}" class="btn btn-danger mt-3 ms-2">Удалить</a>-->
         {% endif %}
       {% endif %}
     </div>
@@ -27,4 +49,5 @@
       {% endif %}
     {% endif %}
   {% endif %}
+</div>
 {% endblock %}

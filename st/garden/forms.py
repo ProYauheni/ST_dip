@@ -1,5 +1,7 @@
 from django import forms
-from .models import Appeal, Document, Comment, Advertisement, News, DocumentFolder, Voting, PaymentInfo, Community
+from .models import Appeal, Document, Comment, Advertisement, News, DocumentFolder, Voting, PaymentInfo, Community, \
+                    BoardMember
+from django.forms import modelformset_factory
 
 class AppealForm(forms.ModelForm):
     class Meta:
@@ -166,10 +168,13 @@ class PaymentInfoForm(forms.ModelForm):
             'membership_fee_instruction',
             'additional_fee_amount',
             'additional_fee_due_date',
+            'additional_fee_instruction',
         ]
         widgets = {
             'membership_fee_due_date': forms.DateInput(attrs={'type': 'date'}),
             'additional_fee_due_date': forms.DateInput(attrs={'type': 'date'}),
+            'membership_fee_instruction': forms.Textarea(attrs={'rows': 3}),  # можно добавить удобный виджет
+            'additional_fee_instruction': forms.Textarea(attrs={'rows': 3}),  # тоже textarea для инструкции
         }
 
 
@@ -183,3 +188,69 @@ class CommunityPaymentInfoForm(forms.ModelForm):
             'bank_details': forms.Textarea(attrs={'rows': 2, 'style': 'width: 684px;'}),
             'additional_info': forms.Textarea(attrs={'rows': 3, 'style': 'width: 630px;'}),
         }
+
+
+
+
+
+class BoardMemberForm(forms.ModelForm):
+    full_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        label='ФИО'
+    )
+    plot_number = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+        label='Номер участка'
+    )
+    phone = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        label='Телефон'
+    )
+
+    class Meta:
+        model = BoardMember
+        fields = ['full_name', 'plot_number', 'phone']
+
+    def clean_plot_number(self):
+        data = self.cleaned_data.get('plot_number')
+        if data in ['', None]:
+            return None
+        return data
+
+
+BoardMemberFormSet = modelformset_factory(
+    BoardMember,
+    form=BoardMemberForm,
+    extra=1,
+    can_delete=True,
+)
+
+
+class CommunityInfoForm(forms.ModelForm):
+    legal_address = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        label='Юридический адрес'
+    )
+    postal_address = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        label='Почтовый адрес'
+    )
+    bank_details = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        label='Банковские реквизиты'
+    )
+    additional_info = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        label='Дополнительная информация'
+    )
+
+    class Meta:
+        model = Community
+        fields = ['legal_address', 'postal_address', 'bank_details', 'additional_info']

@@ -5,8 +5,15 @@
 <div class="text-center my-0">
   <h2>Садоводческое товарищество «{{ community.name }}»</h2>
   {% if community.description %}
-    <p class="community-description">{{ community.description }}</p>
-  {% endif %}
+  <p class="community-description" id="community-description"
+     style="overflow: hidden; max-height: 3em; line-height: 1.5em; transition: max-height 0.3s ease;">
+    {{ community.description }}
+  </p>
+
+  <button id="toggle-description-btn" class="btn btn-link p-0 mt-1" style="display:none;">
+    Читать полностью
+  </button>
+{% endif %}
 </div>
 
 <hr>
@@ -38,6 +45,7 @@
 <hr>
 
 <h3 class="text-center mb-4">Новости и важные сообщения</h3>
+
 
 {% if is_chairman_or_board %}
   <div class="text-center mb-3">
@@ -80,6 +88,52 @@
     </div>
     {% endfor %}
 </div>
+
+{# Пагинация #}
+{% if news.has_other_pages %}
+<nav aria-label="Пагинация новостей" class="mt-4">
+  <ul class="pagination justify-content-center">
+    {% if news.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ news.previous_page_number }}" aria-label="Предыдущая">
+          <span aria-hidden="true">&laquo;</span>
+          <span class="visually-hidden">Предыдущая</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link" aria-hidden="true">&laquo;</span>
+      </li>
+    {% endif %}
+
+    {% for num in news.paginator.page_range %}
+      {% if news.number == num %}
+        <li class="page-item active" aria-current="page">
+          <span class="page-link">{{ num }}</span>
+        </li>
+      {% elif num > news.number|add:'-5' and num < news.number|add:'5' %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    {% if news.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ news.next_page_number }}" aria-label="Следующая">
+          <span aria-hidden="true">&raquo;</span>
+          <span class="visually-hidden">Следующая</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link" aria-hidden="true">&raquo;</span>
+      </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+
 {% else %}
 <p class="text-center">Пока нет новостей.</p>
 {% endif %}
@@ -89,6 +143,25 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Скрипт для описания сообщества с ограничением в 2 строки и кнопкой "Читать полностью"
+    const description = document.getElementById('community-description');
+    const descBtn = document.getElementById('toggle-description-btn');
+    if (description && descBtn) {
+        if (description.scrollHeight > description.clientHeight + 1) {
+            descBtn.style.display = 'inline-block';
+        }
+        descBtn.addEventListener('click', function () {
+            if (description.style.maxHeight && description.style.maxHeight !== '3em') {
+                description.style.maxHeight = '3em';
+                descBtn.textContent = 'Читать полностью';
+            } else {
+                description.style.maxHeight = description.scrollHeight + 'px';
+                descBtn.textContent = 'Свернуть';
+            }
+        });
+    }
+
+    // Скрипт для новостей, чтобы показывать кнопку "Читать полностью" и раскрывать/сворачивать текст
     const buttons = document.querySelectorAll('.read-more-btn');
 
     buttons.forEach(function(button) {
@@ -97,18 +170,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!content) return;
 
-        // Показываем кнопку только если текст обрезается
-        if (content.scrollHeight > content.clientHeight + 1) { // +1 для точности
+        if (content.scrollHeight > content.clientHeight + 1) {
             button.style.display = 'inline-block';
         }
 
         button.addEventListener('click', function() {
             if (content.style.maxHeight && content.style.maxHeight !== '4.5em') {
-                // Свернуть текст
                 content.style.maxHeight = '4.5em';
                 this.textContent = 'Читать полностью';
             } else {
-                // Развернуть текст
                 content.style.maxHeight = content.scrollHeight + 'px';
                 this.textContent = 'Свернуть';
             }

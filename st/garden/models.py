@@ -204,6 +204,8 @@ class Document(models.Model):
 
 
 class BoardMember(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='board_member')
+
     ROLE_CHOICES = [
         ('chairman', 'Председатель правления'),
         ('treasurer', 'Казначей'),
@@ -214,9 +216,9 @@ class BoardMember(models.Model):
 
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='board_members')
     role = models.CharField(max_length=32, choices=ROLE_CHOICES)
-    full_name = models.CharField(max_length=255)
-    plot_number = models.CharField(max_length=50)
-    phone = models.CharField(max_length=20)
+    full_name = models.CharField(max_length=255, null=True, blank=True)
+    plot_number = models.IntegerField(null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
         return f"{self.get_role_display()} — {self.full_name}"
@@ -230,12 +232,14 @@ class PaymentInfo(models.Model):
     membership_fee_due_date = models.DateField(
         verbose_name="Срок оплаты членских взносов", null=True, blank=True)
     membership_fee_instruction = models.TextField(
-        verbose_name="Инструкция по оплате взносов", blank=True)
+        verbose_name="Информация и инструкция по оплате взносов", blank=True)
 
     additional_fee_amount = models.DecimalField(
         max_digits=10, decimal_places=2, verbose_name="Размер дополнительных взносов", null=True, blank=True)
     additional_fee_due_date = models.DateField(
         verbose_name="Срок оплаты дополнительных взносов", null=True, blank=True)
+    additional_fee_instruction = models.TextField(
+        verbose_name="Информация и инструкция по оплате взносов", blank=True)
 
     def __str__(self):
         return f"Оплата для {self.community.name}"

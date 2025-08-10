@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4">Редактирование контактной информации сообщества «{{ user.profile.community.name }}»</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <table class="table table-bordered mb-4">
+  <thead>
+    <tr>
+      <th>Роль</th>
+      <th>ФИО</th>
+      <th>Участок</th>
+      <th>Телефон</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Председатель правления</td>
+      <td>
+        {{ chairman_form.full_name }}
+        {% if chairman_form.full_name.errors %}
+          <div class="text-danger">{{ chairman_form.full_name.errors }}</div>
+        {% endif %}
+      </td>
+      <td>
+        {{ chairman_form.plot_number }}
+        {% if chairman_form.plot_number.errors %}
+          <div class="text-danger">{{ chairman_form.plot_number.errors }}</div>
+        {% endif %}
+      </td>
+      <td>
+        {{ chairman_form.phone }}
+        {% if chairman_form.phone.errors %}
+          <div class="text-danger">{{ chairman_form.phone.errors }}</div>
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td>Казначей</td>
+      <td>
+        {{ treasurer_form.full_name }}
+        {% if treasurer_form.full_name.errors %}
+          <div class="text-danger">{{ treasurer_form.full_name.errors }}</div>
+        {% endif %}
+      </td>
+      <td>
+        {{ treasurer_form.plot_number }}
+        {% if treasurer_form.plot_number.errors %}
+          <div class="text-danger">{{ treasurer_form.plot_number.errors }}</div>
+        {% endif %}
+      </td>
+      <td>
+        {{ treasurer_form.phone }}
+        {% if treasurer_form.phone.errors %}
+          <div class="text-danger">{{ treasurer_form.phone.errors }}</div>
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td>Ответственный за электрохозяйство</td>
+      <td>
+        {{ electricity_manager_form.full_name }}
+        {% if electricity_manager_form.full_name.errors %}
+          <div class="text-danger">{{ electricity_manager_form.full_name.errors }}</div>
+        {% endif %}
+      </td>
+      <td>
+        {{ electricity_manager_form.plot_number }}
+        {% if electricity_manager_form.plot_number.errors %}
+          <div class="text-danger">{{ electricity_manager_form.plot_number.errors }}</div>
+        {% endif %}
+      </td>
+      <td>
+        {{ electricity_manager_form.phone }}
+        {% if electricity_manager_form.phone.errors %}
+          <div class="text-danger">{{ electricity_manager_form.phone.errors }}</div>
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td>Ответственный за водохозяйство</td>
+      <td>
+        {{ water_manager_form.full_name }}
+        {% if water_manager_form.full_name.errors %}
+          <div class="text-danger">{{ water_manager_form.full_name.errors }}</div>
+        {% endif %}
+      </td>
+      <td>
+        {{ water_manager_form.plot_number }}
+        {% if water_manager_form.plot_number.errors %}
+          <div class="text-danger">{{ water_manager_form.plot_number.errors }}</div>
+        {% endif %}
+      </td>
+      <td>
+        {{ water_manager_form.phone }}
+        {% if water_manager_form.phone.errors %}
+          <div class="text-danger">{{ water_manager_form.phone.errors }}</div>
+        {% endif %}
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+    <hr>
+
+    <!-- Formset членов правления -->
+    <h4>Члены правления</h4>
+    {{ board_member_formset.management_form }}
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ФИО</th>
+      <th>Участок</th>
+      <th>Телефон</th>
+      <th>Удалить</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for form in board_member_formset %}
+      <tr>
+        {% for hidden in form.hidden_fields %}
+          {{ hidden }}
+        {% endfor %}
+        <td>
+          {{ form.full_name }}
+          {% if form.full_name.errors %}
+            <div class="text-danger">{{ form.full_name.errors }}</div>
+          {% endif %}
+        </td>
+        <td>
+          {{ form.plot_number }}
+          {% if form.plot_number.errors %}
+            <div class="text-danger">{{ form.plot_number.errors }}</div>
+          {% endif %}
+        </td>
+        <td>
+          {{ form.phone }}
+          {% if form.phone.errors %}
+            <div class="text-danger">{{ form.phone.errors }}</div>
+          {% endif %}
+        </td>
+        <td class="text-center align-middle">
+          {{ form.DELETE }}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+    <p class="text-muted">* Чтобы добавить нового члена правления — заполните пустую строку в таблице.</p>
+
+    <hr>
+
+    <!-- Форма информации сообщества -->
+    <h4>Информация сообщества</h4>
+    {{ community_form.non_field_errors }}
+    <div class="mb-3">
+      {{ community_form.legal_address.label_tag }}
+      {{ community_form.legal_address }}
+      {% if community_form.legal_address.errors %}
+        <div class="text-danger">{{ community_form.legal_address.errors }}</div>
+      {% endif %}
+    </div>
+    <div class="mb-3">
+      {{ community_form.postal_address.label_tag }}
+      {{ community_form.postal_address }}
+      {% if community_form.postal_address.errors %}
+        <div class="text-danger">{{ community_form.postal_address.errors }}</div>
+      {% endif %}
+    </div>
+    <div class="mb-3">
+      {{ community_form.bank_details.label_tag }}
+      {{ community_form.bank_details }}
+      {% if community_form.bank_details.errors %}
+        <div class="text-danger">{{ community_form.bank_details.errors }}</div>
+      {% endif %}
+    </div>
+    <div class="mb-3">
+      {{ community_form.additional_info.label_tag }}
+      {{ community_form.additional_info }}
+      {% if community_form.additional_info.errors %}
+        <div class="text-danger">{{ community_form.additional_info.errors }}</div>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сохранить все</button>
+  </form>
+</div>
+{% endblock %}

@@ -2,9 +2,9 @@ from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Profile, ForumPost, Advertisement, News, Voting, Vote, Voting, PageVisit, Appeal, Community, Document, \
-    Comment, DocumentFolder, PaymentInfo
+    Comment, DocumentFolder, PaymentInfo, BoardMember
 from .forms import AppealForm, AppealResponseForm, DocumentForm, CommentForm, AdvertisementForm, NewsForm, VotingForm, \
-    PaymentInfoForm, CommunityPaymentInfoForm, VotingEditForm
+    PaymentInfoForm, CommunityPaymentInfoForm, VotingEditForm, BoardMemberForm, CommunityInfoForm, BoardMemberFormSet
 from django.contrib import messages
 from django.utils import timezone
 from django.http import HttpResponseForbidden
@@ -13,12 +13,16 @@ from django.urls import reverse
 from django.db.models import Count, Q, Prefetch
 
 from django.views.decorators.http import require_POST
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from django.http import JsonResponse
 
 
 from django.views.decorators.csrf import csrf_exempt
+
+
+
+
 
 
 
@@ -161,31 +165,7 @@ def voting_list(request):
     return render(request, 'voting_list.html', {'votings': votings})
 
 
-# @login_required
-# def voting_create(request, community_id):
-#     if not user_can_manage_votes(request.user):
-#         messages.error(request, "У вас нет прав создавать голосования.")
-#         return redirect('voting_overview')
-#
-#     # Проверяем, что пользователь связан с этим сообществом
-#     community = get_object_or_404(Community, pk=community_id)
-#     profile = getattr(request.user, 'profile', None)
-#     if not profile or profile.community_id != community.id:
-#         messages.error(request, "Вы не принадлежите этому сообществу.")
-#         return redirect('voting_overview')
-#
-#     if request.method == 'POST':
-#         form = VotingForm(request.POST)
-#         if form.is_valid():
-#             voting = form.save(commit=False)
-#             voting.community = community  # фиксируем сообщество
-#             voting.save()
-#             messages.success(request, "Голосование успешно создано.")
-#             return redirect('voting_overview')
-#     else:
-#         form = VotingForm(initial={'community': community})
-#
-#     return render(request, 'voting_create.html', {'form': form, 'community': community})
+
 @login_required
 def voting_create(request, community_id):
     if not user_can_manage_votes(request.user):
@@ -241,17 +221,43 @@ def voting_edit(request, voting_id):
 
 
 
+# @login_required
+# def my_community(request):
+#     profile = get_object_or_404(Profile, user=request.user)
+#     news = News.objects.filter(community=profile.community)
+#     votings = Voting.objects.filter(community=profile.community, active=True)
+#     return render(request, 'my_community.html', {
+#         'community': profile.community,
+#         'news': news,
+#         'votings': votings
+#     })
 @login_required
 def my_community(request):
     profile = get_object_or_404(Profile, user=request.user)
-    news = News.objects.filter(community=profile.community)
-    votings = Voting.objects.filter(community=profile.community, active=True)
-    return render(request, 'my_community.html', {
-        'community': profile.community,
-        'news': news,
-        'votings': votings
-    })
+    community = profile.community
 
+    # Запрос с исключением "удалённых" новостей
+    news_list = News.objects.filter(community=community, is_deleted=False).order_by('-created_at')
+
+    paginator = Paginator(news_list, 6)  # 6 новостей на страницу
+
+    page_number = request.GET.get('page')
+    try:
+        news = paginator.page(page_number)
+    except PageNotAnInteger:
+        news = paginator.page(1)
+    except EmptyPage:
+        news = paginator.page(paginator.num_pages)
+
+    votings = Voting.objects.filter(community=community, active=True)
+    is_chairman_or_board = request.user.profile.role in ['chairman', 'board_member']
+
+    return render(request, 'my_community.html', {
+        'community': community,
+        'news': news,
+        'votings': votings,
+        'is_chairman_or_board': is_chairman_or_board,
+    })
 
 
 
@@ -435,26 +441,6 @@ def all_appeals_list(request):
     })
 
 
-# @login_required
-# @user_passes_test(is_board_member)
-# def voting_report(request, voting_id):
-#     voting = get_object_or_404(Voting, id=voting_id)
-#
-#     votes = voting.vote_set.aggregate(
-#         total=Count('id'),
-#         votes_for=Count('id', filter=Q(choice=True)),
-#         votes_against=Count('id', filter=Q(choice=False))
-#     )
-#
-#     context = {
-#         'voting': voting,
-#         'total_votes': votes['total'],
-#         'votes_for': votes['votes_for'],
-#         'votes_against': votes['votes_against'],
-#     }
-#     return render(request, 'voting_report.html', context)
-
-
 def user_can_manage_documents(user):
     profile = getattr(user, 'profile', None)
     return profile is not None and profile.role in ['chairman', 'board_member']
@@ -552,6 +538,102 @@ def community_contact_edit(request):
         form = CommunityPaymentInfoForm(instance=community)
 
     return render(request, 'community_contact_edit.html', {'form': form, 'community': community})
+
+
+@login_required
+def community_contacts_edit_all(request):
+    user = request.user
+    profile = getattr(user, 'profile', None)
+
+    if not profile or profile.role != 'chairman':
+        messages.error(request, "У вас нет прав редактировать контактную информацию.")
+        return redirect('community_contacts')
+
+    community = profile.community
+
+    chairman = community.board_members.filter(role='chairman').first()
+    treasurer = community.board_members.filter(role='treasurer').first()
+    electricity_manager = community.board_members.filter(role='electricity_manager').first()
+    water_manager = community.board_members.filter(role='water_manager').first()
+    board_members_qs = community.board_members.filter(role='board_member')
+
+    if request.method == 'POST':
+        chairman_form = BoardMemberForm(request.POST, prefix='chairman', instance=chairman)
+        treasurer_form = BoardMemberForm(request.POST, prefix='treasurer', instance=treasurer)
+        electricity_manager_form = BoardMemberForm(request.POST, prefix='electricity', instance=electricity_manager)
+        water_manager_form = BoardMemberForm(request.POST, prefix='water', instance=water_manager)
+        community_form = CommunityInfoForm(request.POST, instance=community)
+        board_member_formset = BoardMemberFormSet(request.POST, queryset=board_members_qs, prefix='board')
+
+        # Вызываем is_valid() для очистки данных, игнорируем результат
+        chairman_form.is_valid()
+        treasurer_form.is_valid()
+        electricity_manager_form.is_valid()
+        water_manager_form.is_valid()
+        community_form.is_valid()
+        board_member_formset.is_valid()
+
+        try:
+            # Сохраняем одиночные формы
+            chairman_obj = chairman_form.save(commit=False)
+            chairman_obj.role = 'chairman'
+            chairman_obj.community = community
+            chairman_obj.save()
+
+            treasurer_obj = treasurer_form.save(commit=False)
+            treasurer_obj.role = 'treasurer'
+            treasurer_obj.community = community
+            treasurer_obj.save()
+
+            electricity_obj = electricity_manager_form.save(commit=False)
+            electricity_obj.role = 'electricity_manager'
+            electricity_obj.community = community
+            electricity_obj.save()
+
+            water_obj = water_manager_form.save(commit=False)
+            water_obj.role = 'water_manager'
+            water_obj.community = community
+            water_obj.save()
+
+            # Обрабатываем formset членов правления
+            instances = board_member_formset.save(commit=False)
+
+            # Удаляем объекты, помеченные на удаление
+            for obj in board_member_formset.deleted_objects:
+                obj.delete()
+
+            # Сохраняем новые и изменённые объекты из formset
+            for obj in instances:
+                obj.role = 'board_member'
+                obj.community = community
+                obj.save()
+
+            community_form.save()
+
+            messages.success(request, "Контактная информация успешно обновлена.")
+            return redirect('community_contacts')
+
+        except Exception as e:
+            messages.error(request, f"Ошибка при сохранении: {e}")
+
+    else:
+        chairman_form = BoardMemberForm(prefix='chairman', instance=chairman)
+        treasurer_form = BoardMemberForm(prefix='treasurer', instance=treasurer)
+        electricity_manager_form = BoardMemberForm(prefix='electricity', instance=electricity_manager)
+        water_manager_form = BoardMemberForm(prefix='water', instance=water_manager)
+        community_form = CommunityInfoForm(instance=community)
+        board_member_formset = BoardMemberFormSet(queryset=board_members_qs, prefix='board')
+
+    context = {
+        'chairman_form': chairman_form,
+        'treasurer_form': treasurer_form,
+        'electricity_manager_form': electricity_manager_form,
+        'water_manager_form': water_manager_form,
+        'community_form': community_form,
+        'board_member_formset': board_member_formset,
+    }
+    return render(request, 'community_contacts_edit_all.html', context)
+
 
 
 @login_required

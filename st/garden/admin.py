@@ -13,9 +13,14 @@ admin.site.register(DocumentFolder)
 
 
 class BoardMemberAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'role', 'community', 'plot_number', 'phone')
+    list_display = ('get_username', 'full_name', 'role', 'community', 'plot_number', 'phone')
     list_filter = ('community', 'role')
-    search_fields = ('full_name', 'plot_number', 'phone')
+    search_fields = ('full_name', 'plot_number', 'phone', 'user__username')
+
+    def get_username(self, obj):
+        return obj.user.username if obj.user else '(не указан)'
+    get_username.short_description = 'Пользователь'
+    get_username.admin_order_field = 'user__username'
 
 admin.site.register(BoardMember, BoardMemberAdmin)
 

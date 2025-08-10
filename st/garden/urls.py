@@ -34,8 +34,11 @@ urlpatterns = [
     path('community/<int:community_id>/documents/add/', views.add_document, name='add_document'),
     path('documents/<int:pk>/delete/', views.delete_document, name='delete_document'),
 
-    path('my-community/contacts/', views.contacts_view, name='community_contacts'),
-    path('my-community/contacts/edit/', views.community_contact_edit, name='community_contact_edit'),
+    path('my_community/contacts/', views.contacts_view, name='community_contacts'),
+    path('my_community/contacts/edit/', views.community_contact_edit, name='community_contact_edit'),
+
+
+    path('community/contacts/edit-all/', views.community_contacts_edit_all, name='community_contacts_edit_all'),
 
     path('my_community/payment/', views.payment_view, name='community_payment'),
 
@@ -47,7 +50,7 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('profile/change-password/', auth_views.PasswordChangeView.as_view(
         template_name='registration/change_password.html',success_url='/profile/'), name='password_change'),
-    path('my-community/', views.my_community_view, name='my_community'),
+    # path('my-community/', views.my_community_view, name='my_community'),
     path('community/<int:community_id>/news/add/', views.add_news, name='add_news'),
     path('news/<int:pk>/delete/', views.delete_news, name='delete_news'),
     path('news/<int:pk>/edit/', views.edit_news, name='edit_news'),
