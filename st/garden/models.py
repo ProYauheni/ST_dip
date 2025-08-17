@@ -13,6 +13,14 @@ class Community(models.Model):
     bank_details = models.TextField("Банковские реквизиты", blank=True, null=True)
     additional_info = models.TextField("Дополнительная информация", blank=True, null=True)
 
+    messenger_group_link = models.URLField(
+        "Ссылка на группу в мессенджере",
+        max_length=400,
+        blank=True,
+        null=True,
+        help_text="Ссылка на группу Viber или другую мессенджер-группу."
+    )
+
 
     def __str__(self):
         return self.name
@@ -173,6 +181,10 @@ class Appeal(models.Model):
 class DocumentFolder(models.Model):
     name = models.CharField(max_length=255)
     community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name='folders')
+    order = models.PositiveIntegerField(default=0, blank=False, null=False)
+
+    class Meta:
+        ordering = ['order']  # включаем сортировку по полю
 
     def __str__(self):
         return self.name

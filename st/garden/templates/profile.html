@@ -9,7 +9,7 @@
 
 
 
-    <a href="{% url 'appeal_list' %}" class="btn btn-outline-primary square-btn">Ваши обращения</a>
+    <a href="{% url 'appeal_list' %}" class="btn btn-outline-primary square-btn">Мои обращения</a>
 
     {% if user_role == 'chairman' or user_role == 'board_member' %}
     <a href="{% url 'all_appeals_list' %}" class="btn btn-outline-primary square-btn">Все обращения</a>

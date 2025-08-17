@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-lhg3pw4-=l&v!@h#1kqp2-g+6e+i71wj!1u02l=i+iat@rb#3g
 DEBUG = True
 
 ALLOWED_HOSTS = []
-# ALLOWED_HOSTS = ['proyauheni.pythonanywhere.com']
+# ALLOWED_HOSTS = ['na-dachy.by', 'www.na-dachy.by']
 
 
 # Application definition
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'st_kr_ok',
     'garden',
+    'adminsortable2',
 ]
 
 MIDDLEWARE = [

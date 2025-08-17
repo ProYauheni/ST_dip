@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Community, Profile, News, ForumPost, Advertisement, Voting, Document, BoardMember, PaymentInfo, DocumentFolder
+from adminsortable2.admin import SortableAdminMixin
 
 # Регистрируем каждую модель в админке
 admin.site.register(Community)
@@ -29,3 +30,8 @@ class PaymentInfoAdmin(admin.ModelAdmin):
     list_display = ('community', 'membership_fee_amount', 'membership_fee_due_date',
                     'additional_fee_amount', 'additional_fee_due_date')
     search_fields = ('community__name',)
+
+
+
+
+

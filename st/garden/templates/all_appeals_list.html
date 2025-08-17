@@ -1,13 +1,26 @@
+{# all_appeals_list.html #}
 {% extends 'base.html' %}
 {% block content %}
 <h2 class="text-center align-middle">Все обращения СТ «{{ community.name }}»</h2>
 <table class="table">
     <thead>
         <tr>
+            <th>#</th> <!-- Добавлена колонка номера -->
             <th>Пользователь</th>
-            <th>Тип обращения</th>
+            <th>
+                <a href="?sort=appeal_type{% if request.GET.sort == 'appeal_type' and request.GET.order != 'desc' %}&order=desc{% endif %}">
+                    Тип обращения
+                    {% if request.GET.sort == 'appeal_type' %}
+                        {% if request.GET.order == 'desc' %}
+                            &#9660;
+                        {% else %}
+                            &#9650;
+                        {% endif %}
+                    {% endif %}
+                </a>
+            </th>
             <th>Текст</th>
-            <th>Дата</th>
+            <th>Дата обращения</th>
             <th>Ответ</th>
             <th>Ответил</th>
             <th>Действия</th>  <!-- Добавляем колонку для ссылок -->
@@ -16,6 +29,7 @@
     <tbody>
         {% for appeal in appeals %}
         <tr>
+            <td>{{ forloop.revcounter }}</td> <!-- Глобальная обратная нумерация -->
             <td>{{ appeal.user.get_full_name|default:appeal.user.username }}</td>
             <td>{{ appeal.get_appeal_type_display }}</td>
             <td>{{ appeal.text|truncatewords:20 }}</td>
@@ -24,7 +38,7 @@
                 {% if appeal.response %}
                     {{ appeal.response|truncatewords:20 }}
                 {% else %}
-                    <em>Нет ответа</em>
+                    <em style="font-weight: bold; color: red;">Нет ответа</em>
                 {% endif %}
             </td>
             <td>
@@ -42,12 +56,47 @@
         </tr>
         {% empty %}
         <tr>
-            <td colspan="7">Обращений нет.</td>
+            <td colspan="8">Обращений нет.</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
+{# Пагинация #}
+{% if appeals.has_other_pages %}
+<nav aria-label="Пагинация обращений" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if appeals.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ appeals.previous_page_number }}" aria-label="Предыдущая">
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="visually-hidden">Предыдущая</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+        {% endif %}
+
+        {% for num in appeals.paginator.page_range %}
+            {% if appeals.number == num %}
+                <li class="page-item active" aria-current="page"><span class="page-link">{{ num }}</span></li>
+            {% elif num > appeals.number|add:'-5' and num < appeals.number|add:'5' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if appeals.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ appeals.next_page_number }}" aria-label="Следующая">
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="visually-hidden">Следующая</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 
 {% endblock %}
-

@@ -251,6 +251,12 @@ class CommunityInfoForm(forms.ModelForm):
         label='Дополнительная информация'
     )
 
+    messenger_group_link = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://'}),
+        label='Ссылка на группу в мессенджере'
+    )
+
     class Meta:
         model = Community
-        fields = ['legal_address', 'postal_address', 'bank_details', 'additional_info']
+        fields = ['legal_address', 'postal_address', 'bank_details', 'additional_info', 'messenger_group_link']

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Список объявлений{% endblock %}
+{% block title %}Доска объявлений{% endblock %}
 
 {% block content %}
-<h2 class="text-center mb-4">Список объявлений</h2>
+<h2 class="text-center mb-4">Доска объявлений</h2>
 
 {% if page_obj %}
   <div class="ads-container d-flex flex-wrap justify-content-start gap-3">
@@ -89,16 +89,16 @@
 
 <style>
   .ads-container {
-    gap: 1rem;
+    gap: 2rem;
   }
 
   .ad-card {
-    background-color: #d4edda;
-    color: #155724;
+    background-color: #ebfaef;
+    color: #000000;
     border: 1px solid #c3e6cb;
     border-radius: 0.375rem;
     padding: 1rem;
-    min-height: 340px;
+    min-height: 200px;
     box-sizing: border-box;
 
     /* На большие экраны ~5 карточек в строке */
@@ -200,66 +200,110 @@
 </style>
 
 <script>
+<!--  document.addEventListener('DOMContentLoaded', function () {-->
+<!--    // Раскрытие описания-->
+<!--    const descriptions = document.querySelectorAll('.ad-description');-->
+<!--    descriptions.forEach(desc => {-->
+<!--      const btn = desc.nextElementSibling;-->
+<!--      if (!btn || !btn.classList.contains('read-more-btn')) return;-->
+
+<!--      const clone = desc.cloneNode(true);-->
+<!--      clone.style.position = 'absolute';-->
+<!--      clone.style.visibility = 'hidden';-->
+<!--      clone.style.height = 'auto';-->
+<!--      clone.style.webkitLineClamp = 'unset';-->
+<!--      clone.style.display = 'block';-->
+<!--      clone.style.overflow = 'visible';-->
+<!--      clone.style.whiteSpace = 'normal';-->
+<!--      clone.style.width = desc.offsetWidth + 'px';-->
+<!--      document.body.appendChild(clone);-->
+
+<!--      const fullHeight = clone.offsetHeight;-->
+<!--      const limitedHeight = desc.offsetHeight;-->
+
+<!--      document.body.removeChild(clone);-->
+
+<!--      if (fullHeight > limitedHeight) {-->
+<!--        btn.style.display = 'inline';-->
+<!--        btn.addEventListener('click', () => {-->
+<!--          if (desc.classList.contains('description-expanded')) {-->
+<!--            desc.classList.remove('description-expanded');-->
+<!--            btn.textContent = 'Читать полностью';-->
+<!--          } else {-->
+<!--            desc.classList.add('description-expanded');-->
+<!--            btn.textContent = 'Свернуть';-->
+<!--          }-->
+<!--        });-->
+<!--      }-->
+<!--    });-->
+
+<!--    // Увеличение фото-->
+<!--    const modal = document.getElementById('modal-photo');-->
+<!--    const modalImg = document.getElementById('modal-img');-->
+<!--    const modalClose = modal.querySelector('.modal-close');-->
+
+<!--    document.querySelectorAll('.ad-photo').forEach(img => {-->
+<!--      img.addEventListener('click', () => {-->
+<!--        modal.style.display = 'flex';-->
+<!--        modalImg.src = img.dataset.full || img.src;-->
+<!--        modalImg.alt = img.alt || 'Фото объявления';-->
+<!--      });-->
+<!--    });-->
+
+<!--    modalClose.addEventListener('click', () => {-->
+<!--      modal.style.display = 'none';-->
+<!--    });-->
+
+<!--    modal.addEventListener('click', (e) => {-->
+<!--      if (e.target === modal) {-->
+<!--        modal.style.display = 'none';-->
+<!--      }-->
+<!--    });-->
+<!--  });-->
   document.addEventListener('DOMContentLoaded', function () {
-    // Раскрытие описания
-    const descriptions = document.querySelectorAll('.ad-description');
-    descriptions.forEach(desc => {
-      const btn = desc.nextElementSibling;
-      if (!btn || !btn.classList.contains('read-more-btn')) return;
+  const buttons = document.querySelectorAll('.read-more-btn');
+  buttons.forEach(btn => {
+    const targetId = btn.getAttribute('data-target');
+    const desc = document.getElementById(targetId);
+    if (!desc) return;
 
-      const clone = desc.cloneNode(true);
-      clone.style.position = 'absolute';
-      clone.style.visibility = 'hidden';
-      clone.style.height = 'auto';
-      clone.style.webkitLineClamp = 'unset';
-      clone.style.display = 'block';
-      clone.style.overflow = 'visible';
-      clone.style.whiteSpace = 'normal';
-      clone.style.width = desc.offsetWidth + 'px';
-      document.body.appendChild(clone);
-
-      const fullHeight = clone.offsetHeight;
-      const limitedHeight = desc.offsetHeight;
-
-      document.body.removeChild(clone);
-
-      if (fullHeight > limitedHeight) {
-        btn.style.display = 'inline';
-        btn.addEventListener('click', () => {
-          if (desc.classList.contains('description-expanded')) {
-            desc.classList.remove('description-expanded');
-            btn.textContent = 'Читать полностью';
-          } else {
-            desc.classList.add('description-expanded');
-            btn.textContent = 'Свернуть';
-          }
-        });
-      }
-    });
-
-    // Увеличение фото
-    const modal = document.getElementById('modal-photo');
-    const modalImg = document.getElementById('modal-img');
-    const modalClose = modal.querySelector('.modal-close');
-
-    document.querySelectorAll('.ad-photo').forEach(img => {
-      img.addEventListener('click', () => {
-        modal.style.display = 'flex';
-        modalImg.src = img.dataset.full || img.src;
-        modalImg.alt = img.alt || 'Фото объявления';
+    // Показываем кнопку, если текст длиннее 300 символов (пример)
+    if (desc.textContent.length > 300) {
+      btn.style.display = 'inline';
+      btn.addEventListener('click', () => {
+        if (desc.classList.contains('description-expanded')) {
+          desc.classList.remove('description-expanded');
+          btn.textContent = 'Читать полностью';
+        } else {
+          desc.classList.add('description-expanded');
+          btn.textContent = 'Свернуть';
+        }
       });
-    });
+    } else {
+      btn.style.display = 'none';
+    }
+  });
 
-    modalClose.addEventListener('click', () => {
-      modal.style.display = 'none';
-    });
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.style.display = 'none';
-      }
+  // Увеличение фото
+  const modal = document.getElementById('modal-photo');
+  const modalImg = document.getElementById('modal-img');
+  const modalClose = modal.querySelector('.modal-close');
+  document.querySelectorAll('.ad-photo').forEach(img => {
+    img.addEventListener('click', () => {
+      modal.style.display = 'flex';
+      modalImg.src = img.dataset.full || img.src;
+      modalImg.alt = img.alt || 'Фото объявления';
     });
   });
+  modalClose.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+});
 </script>
 
 {% endblock %}

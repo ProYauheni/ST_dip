@@ -190,6 +190,14 @@
         <div class="text-danger">{{ community_form.additional_info.errors }}</div>
       {% endif %}
     </div>
+        <div class="mb-3">
+      {{ community_form.messenger_group_link.label_tag }}
+      {{ community_form.messenger_group_link }}
+      {% if community_form.messenger_group_link.errors %}
+        <div class="text-danger">{{ community_form.messenger_group_link.errors }}</div>
+      {% endif %}
+    </div>
+
 
     <button type="submit" class="btn btn-primary">Сохранить все</button>
   </form>

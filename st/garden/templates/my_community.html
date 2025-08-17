@@ -6,7 +6,7 @@
   <h2>Садоводческое товарищество «{{ community.name }}»</h2>
   {% if community.description %}
   <p class="community-description" id="community-description"
-     style="overflow: hidden; max-height: 3em; line-height: 1.5em; transition: max-height 0.3s ease;">
+     style="overflow: hidden; max-height: 3em; line-height: 1.4em; transition: max-height 0.3s ease;">
     {{ community.description }}
   </p>
 
@@ -33,7 +33,7 @@
     </a>
 
     <a href="{% url 'community_payment' %}" class="btn btn-outline-primary square-btn">
-        ПЛАТЕЖИ
+        ВЗНОСЫ
     </a>
 
     <a href="{% url 'documents_list' community.id %}" class="btn btn-outline-primary square-btn">

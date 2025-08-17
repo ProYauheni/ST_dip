@@ -432,13 +432,37 @@ def all_appeals_list(request):
     profile = get_object_or_404(Profile, user=request.user)
     community = profile.community
 
-    # Фильтруем обращения только по сообществу пользователя
-    appeals = Appeal.objects.filter(user__profile__community=community).order_by('-created_at')
+    sort_field = request.GET.get('sort', '')
+    sort_order = request.GET.get('order', '')
+
+    valid_sort_fields = ['appeal_type', 'created_at']
+    if sort_field not in valid_sort_fields:
+        sort_field = '-created_at'
+    else:
+        if sort_order == 'desc':
+            sort_field = '-' + sort_field
+
+    appeals_qs = Appeal.objects.filter(user__profile__community=community).order_by(sort_field)
+
+    paginator = Paginator(appeals_qs, 30)  # 30 обращений на страницу
+    page_number = request.GET.get('page')
+    appeals = paginator.get_page(page_number)
 
     return render(request, 'all_appeals_list.html', {
         'appeals': appeals,
         'community': community,
+        'request': request,
     })
+
+@login_required
+def appeal_delete(request, pk):
+    appeal = get_object_or_404(Appeal, pk=pk, user=request.user)
+    if request.method == 'POST':
+        appeal.delete()
+        return redirect('appeal_list')  # замените на имя url с списком обращений
+    # Можно отобразить страницу подтверждения удаления или сразу редирект
+    return redirect('appeal_list')
+
 
 
 def user_can_manage_documents(user):
@@ -520,24 +544,7 @@ def contacts_view(request):
         'contacts': contacts,
     })
 
-@login_required
-def community_contact_edit(request):
-    community = request.user.profile.community
 
-    if not user_can_manage_contacts(request.user):
-        messages.error(request, "У вас нет прав редактировать контактную информацию.")
-        return redirect('community_contacts')
-
-    if request.method == 'POST':
-        form = CommunityPaymentInfoForm(request.POST, instance=community)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Информация успешно обновлена.")
-            return redirect('community_contacts')
-    else:
-        form = CommunityPaymentInfoForm(instance=community)
-
-    return render(request, 'community_contact_edit.html', {'form': form, 'community': community})
 
 
 @login_required
@@ -633,6 +640,28 @@ def community_contacts_edit_all(request):
         'board_member_formset': board_member_formset,
     }
     return render(request, 'community_contacts_edit_all.html', context)
+
+
+@login_required
+def community_contact_edit(request):
+    community = request.user.profile.community
+
+    # Проверяем роль пользователя: должен быть chairman или board_member
+    if request.user.profile.role not in ['chairman', 'board_member']:
+        messages.error(request, "У вас нет прав для редактирования контактной информации.")
+        return redirect('community_contacts')
+
+    if request.method == 'POST':
+        form = CommunityInfoForm(request.POST, instance=community)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Информация успешно обновлена.")
+            return redirect('community_contacts')
+    else:
+        form = CommunityInfoForm(instance=community)
+
+    return render(request, 'community_contact_edit.html', {'form': form, 'community': community})
+
 
 
 
