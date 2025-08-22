@@ -1,39 +1,54 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="container py-4">
+  <h2 class="mb-4">Добавить объявление</h2>
 
-<h2>Добавить объявление</h2>
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
 
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  {{ form.non_field_errors }}
+    <div class="mb-3">
+      {{ form.topic.label_tag }}
+      {{ form.topic }}
+      {% if form.topic.errors %}
+        <div class="text-danger">{{ form.topic.errors }}</div>
+      {% endif %}
+    </div>
 
-  <p>
-    {{ form.title.label_tag }}<br>
-    {{ form.title }}
-    {{ form.title.errors }}
-  </p>
+    <div class="mb-3">
+      {{ form.title.label_tag }}
+      {{ form.title }}
+      {% if form.title.errors %}
+        <div class="text-danger">{{ form.title.errors }}</div>
+      {% endif %}
+    </div>
 
-  <p>
-    {{ form.description.label_tag }}<br>
-    {{ form.description }}
-    {{ form.description.errors }}
-  </p>
+    <div class="mb-3">
+      {{ form.description.label_tag }}
+      {{ form.description }}
+      {% if form.description.errors %}
+        <div class="text-danger">{{ form.description.errors }}</div>
+      {% endif %}
+    </div>
 
-  <p>
-    {{ form.photo.label_tag }}<br>
-    {{ form.photo }}
-    {{ form.photo.errors }}
-  </p>
+    <div class="mb-3">
+      {{ form.photo.label_tag }}
+      {{ form.photo }}
+      {% if form.photo.errors %}
+        <div class="text-danger">{{ form.photo.errors }}</div>
+      {% endif %}
+    </div>
 
-  <p>
-    {{ form.contact.label_tag }}<br>
-    {{ form.contact }}
-    {{ form.contact.errors }}
-  </p>
+    <div class="mb-3">
+      {{ form.contact.label_tag }}
+      {{ form.contact }}
+      {% if form.contact.errors %}
+        <div class="text-danger">{{ form.contact.errors }}</div>
+      {% endif %}
+    </div>
 
-  <button type="submit" class="btn btn-primary">Опубликовать</button>
-</form>
-
-
+    <button type="submit" class="btn btn-primary">Опубликовать</button>
+  </form>
+</div>
 {% endblock %}

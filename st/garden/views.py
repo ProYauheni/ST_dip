@@ -4,7 +4,9 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Profile, ForumPost, Advertisement, News, Voting, Vote, Voting, PageVisit, Appeal, Community, Document, \
     Comment, DocumentFolder, PaymentInfo, BoardMember
 from .forms import AppealForm, AppealResponseForm, DocumentForm, CommentForm, AdvertisementForm, NewsForm, VotingForm, \
-    PaymentInfoForm, CommunityPaymentInfoForm, VotingEditForm, BoardMemberForm, CommunityInfoForm, BoardMemberFormSet
+    PaymentInfoForm, CommunityPaymentInfoForm, VotingEditForm, BoardMemberForm, CommunityInfoForm, BoardMemberFormSet, \
+    EmailUpdateForm
+
 from django.contrib import messages
 from django.utils import timezone
 from django.http import HttpResponseForbidden
@@ -16,6 +18,7 @@ from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from django.http import JsonResponse
+from django import forms
 
 
 from django.views.decorators.csrf import csrf_exempt
@@ -48,10 +51,8 @@ def forum(request):
 @login_required
 def forum_post_detail(request, pk):
     post = get_object_or_404(ForumPost, pk=pk)
-    # Получаем только корневые комментарии (без родителя)
     comments = post.comments.filter(parent__isnull=True).prefetch_related('replies', 'user')
 
-    # Получаем, на какой комментарий хотят ответить
     reply_to = request.GET.get('reply_to')
     try:
         reply_to = int(reply_to)
@@ -64,18 +65,14 @@ def forum_post_detail(request, pk):
             parent_id = form.cleaned_data.get('parent_id')
             parent_comment = None
             if parent_id:
-                # Проверяем, что родительский комментарий действительно принадлежит этому посту
                 parent_comment = Comment.objects.filter(id=parent_id, post=post).first()
             comment = form.save(commit=False)
             comment.post = post
             comment.user = request.user
             comment.parent = parent_comment
             comment.save()
-            # После отправки формы редиректим на тот же пост, чтобы избежать повторной отправки
-            # и сбрасываем reply_to (можно прокрутить к новому комментарию по желанию)
             return redirect(f'{post.get_absolute_url()}#comment-{comment.id}')
     else:
-        # Если пользователь нажал "Ответить", подставляем parent_id в форму
         initial = {}
         if reply_to:
             initial['parent_id'] = reply_to
@@ -89,16 +86,22 @@ def forum_post_detail(request, pk):
     }
     return render(request, 'forum_post_detail.html', context)
 
-
-# def ads(request):
-#     ads = Advertisement.objects.all().order_by('-created_at')
-#     return render(request, 'ads.html', {'ads': ads})
+@login_required
 def ads(request):
+    topic_filter = request.GET.get('topic', '')  # Получаем выбранную тему из GET-параметров
+
     ads_list = Advertisement.objects.all().order_by('-created_at')
+    if topic_filter:
+        ads_list = ads_list.filter(topic=topic_filter)
+
     paginator = Paginator(ads_list, 15)  # 15 объявлений на страницу
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'ads.html', {'page_obj': page_obj})
+
+    return render(request, 'ads.html', {
+        'page_obj': page_obj,
+        'topic': topic_filter,
+    })
 
 
 @login_required
@@ -221,16 +224,7 @@ def voting_edit(request, voting_id):
 
 
 
-# @login_required
-# def my_community(request):
-#     profile = get_object_or_404(Profile, user=request.user)
-#     news = News.objects.filter(community=profile.community)
-#     votings = Voting.objects.filter(community=profile.community, active=True)
-#     return render(request, 'my_community.html', {
-#         'community': profile.community,
-#         'news': news,
-#         'votings': votings
-#     })
+
 @login_required
 def my_community(request):
     profile = get_object_or_404(Profile, user=request.user)
@@ -239,7 +233,7 @@ def my_community(request):
     # Запрос с исключением "удалённых" новостей
     news_list = News.objects.filter(community=community, is_deleted=False).order_by('-created_at')
 
-    paginator = Paginator(news_list, 6)  # 6 новостей на страницу
+    paginator = Paginator(news_list, 9)  # 6 новостей на страницу
 
     page_number = request.GET.get('page')
     try:
@@ -275,7 +269,7 @@ def voting_detail(request, voting_id):
     voting_closed = not voting.active
 
     if not request.user.profile.can_vote:
-        message = "Вам запрещено голосовать. Пожалуйста, свяжитесь с администрацией для уточнения."
+        message = "Вам запрещено голосовать. Пожалуйста, свяжитесь с администрацией сайта для уточнения."
         return render(request, 'voting_list.html', {'warning_message': message})
  
 
@@ -302,9 +296,75 @@ def voting_detail(request, voting_id):
 
 
 
+# @login_required    # Для того чтобы пользователи не видели результатов голосования
+# def voting_overview(request):
+#     can_manage = user_can_manage_votes(request.user)
+#
+#     if request.user.is_superuser or request.user.is_staff:
+#         votings = Voting.objects.annotate(
+#             total_votes=Count('votes'),
+#             votes_for=Count('votes', filter=Q(votes__choice='for')),
+#             votes_against=Count('votes', filter=Q(votes__choice='against')),
+#             votes_abstained=Count('votes', filter=Q(votes__choice='abstained')),
+#         ).order_by('-created_at')
+#         community = None
+#     else:
+#         communities = Profile.objects.filter(
+#             user=request.user,
+#             role__in=['chairman', 'board_member']
+#         ).values_list('community', flat=True)
+#
+#         votings = Voting.objects.filter(community__in=communities).annotate(
+#             total_votes=Count('votes'),
+#             votes_for=Count('votes', filter=Q(votes__choice='for')),
+#             votes_against=Count('votes', filter=Q(votes__choice='against')),
+#             votes_abstained=Count('votes', filter=Q(votes__choice='abstained')),
+#         ).order_by('-created_at')
+#
+#         community = None
+#         if communities:
+#             community = Community.objects.filter(id__in=communities).first()
+#
+#     context = {
+#         'votings': votings,
+#         'can_manage': can_manage,
+#         'community': community,
+#     }
+#     return render(request, 'voting_overview.html', context)
+
+# @login_required # Для того чтобы пользователи ВИДЕЛИ результатов голосования
+# def voting_overview(request):
+#     can_manage = user_can_manage_votes(request.user)
+#     community = getattr(request.user.profile, 'community', None)
+#
+#     if request.user.is_superuser or request.user.is_staff:
+#         votings = Voting.objects.annotate(
+#             total_votes=Count('votes'),
+#             votes_for=Count('votes', filter=Q(votes__choice='for')),
+#             votes_against=Count('votes', filter=Q(votes__choice='against')),
+#             votes_abstained=Count('votes', filter=Q(votes__choice='abstained')),
+#         ).order_by('-created_at')
+#     elif community:
+#         votings = Voting.objects.filter(community=community).annotate(
+#             total_votes=Count('votes'),
+#             votes_for=Count('votes', filter=Q(votes__choice='for')),
+#             votes_against=Count('votes', filter=Q(votes__choice='against')),
+#             votes_abstained=Count('votes', filter=Q(votes__choice='abstained')),
+#         ).order_by('-created_at')
+#     else:
+#         votings = Voting.objects.none()
+#
+#     context = {
+#         'votings': votings,
+#         'can_manage': can_manage,
+#         'community': community,
+#     }
+#     return render(request, 'voting_overview.html', context)
+
 @login_required
 def voting_overview(request):
     can_manage = user_can_manage_votes(request.user)
+    community = getattr(request.user.profile, 'community', None)
 
     if request.user.is_superuser or request.user.is_staff:
         votings = Voting.objects.annotate(
@@ -313,23 +373,25 @@ def voting_overview(request):
             votes_against=Count('votes', filter=Q(votes__choice='against')),
             votes_abstained=Count('votes', filter=Q(votes__choice='abstained')),
         ).order_by('-created_at')
-        community = None
+    elif community:
+        if can_manage:
+            # Председатели и члены правления видят все голосования своего сообщества
+            votings = Voting.objects.filter(community=community).annotate(
+                total_votes=Count('votes'),
+                votes_for=Count('votes', filter=Q(votes__choice='for')),
+                votes_against=Count('votes', filter=Q(votes__choice='against')),
+                votes_abstained=Count('votes', filter=Q(votes__choice='abstained')),
+            ).order_by('-created_at')
+        else:
+            # Обычные пользователи видят только завершённые голосования
+            votings = Voting.objects.filter(community=community, active=False).annotate(
+                total_votes=Count('votes'),
+                votes_for=Count('votes', filter=Q(votes__choice='for')),
+                votes_against=Count('votes', filter=Q(votes__choice='against')),
+                votes_abstained=Count('votes', filter=Q(votes__choice='abstained')),
+            ).order_by('-created_at')
     else:
-        communities = Profile.objects.filter(
-            user=request.user,
-            role__in=['chairman', 'board_member']
-        ).values_list('community', flat=True)
-
-        votings = Voting.objects.filter(community__in=communities).annotate(
-            total_votes=Count('votes'),
-            votes_for=Count('votes', filter=Q(votes__choice='for')),
-            votes_against=Count('votes', filter=Q(votes__choice='against')),
-            votes_abstained=Count('votes', filter=Q(votes__choice='abstained')),
-        ).order_by('-created_at')
-
-        community = None
-        if communities:
-            community = Community.objects.filter(id__in=communities).first()
+        votings = Voting.objects.none()
 
     context = {
         'votings': votings,
@@ -337,6 +399,7 @@ def voting_overview(request):
         'community': community,
     }
     return render(request, 'voting_overview.html', context)
+
 
 
 @login_required
@@ -435,16 +498,15 @@ def all_appeals_list(request):
     sort_field = request.GET.get('sort', '')
     sort_order = request.GET.get('order', '')
 
-    valid_sort_fields = ['appeal_type', 'created_at']
+    valid_sort_fields = ['appeal_type', 'created_at', 'response']
     if sort_field not in valid_sort_fields:
-        sort_field = '-created_at'
+        sort_criteria = '-created_at'
     else:
-        if sort_order == 'desc':
-            sort_field = '-' + sort_field
+        sort_criteria = ('-' if sort_order == 'desc' else '') + sort_field
 
-    appeals_qs = Appeal.objects.filter(user__profile__community=community).order_by(sort_field)
+    appeals_qs = Appeal.objects.filter(user__profile__community=community).order_by(sort_criteria)
 
-    paginator = Paginator(appeals_qs, 30)  # 30 обращений на страницу
+    paginator = Paginator(appeals_qs, 30)
     page_number = request.GET.get('page')
     appeals = paginator.get_page(page_number)
 
@@ -453,6 +515,8 @@ def all_appeals_list(request):
         'community': community,
         'request': request,
     })
+
+
 
 @login_required
 def appeal_delete(request, pk):
@@ -829,3 +893,27 @@ def user_ping(request):
         profile.save(update_fields=['last_seen'])
         return JsonResponse({'status': 'ok'})
     return JsonResponse({'error': 'invalid method'}, status=405)
+
+
+@login_required
+def profile_view(request):
+    profile = getattr(request.user, 'profile', None)
+    user_role = getattr(profile, 'role', 'member') if profile else 'member'
+
+    if request.method == 'POST':
+        form = EmailUpdateForm(request.POST)
+        if form.is_valid():
+            request.user.email = form.cleaned_data['email']
+            request.user.save()
+            messages.success(request, 'Email успешно обновлён')
+            return redirect('profile')
+    else:
+        form = EmailUpdateForm(initial={'email': request.user.email})
+
+    context = {
+        'user_role': user_role,
+        'form_email': form,
+    }
+    return render(request, 'profile.html', context)
+
+

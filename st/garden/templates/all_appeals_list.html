@@ -21,7 +21,18 @@
             </th>
             <th>Текст</th>
             <th>Дата обращения</th>
-            <th>Ответ</th>
+            <th>
+                <a href="?sort=response{% if request.GET.sort == 'response' and request.GET.order != 'desc' %}&order=desc{% endif %}">
+                    Ответ
+                    {% if request.GET.sort == 'response' %}
+                        {% if request.GET.order == 'desc' %}
+                            &#9660;
+                        {% else %}
+                            &#9650;
+                        {% endif %}
+                    {% endif %}
+                </a>
+            </th>
             <th>Ответил</th>
             <th>Действия</th>  <!-- Добавляем колонку для ссылок -->
         </tr>
@@ -56,7 +67,7 @@
         </tr>
         {% empty %}
         <tr>
-            <td colspan="8">Обращений нет.</td>
+            <td colspan="8" class="text-center">Обращений нет.</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -68,7 +79,7 @@
     <ul class="pagination justify-content-center">
         {% if appeals.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ appeals.previous_page_number }}" aria-label="Предыдущая">
+                <a class="page-link" href="?page={{ appeals.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}" aria-label="Предыдущая">
                     <span aria-hidden="true">&laquo;</span>
                     <span class="visually-hidden">Предыдущая</span>
                 </a>
@@ -81,13 +92,13 @@
             {% if appeals.number == num %}
                 <li class="page-item active" aria-current="page"><span class="page-link">{{ num }}</span></li>
             {% elif num > appeals.number|add:'-5' and num < appeals.number|add:'5' %}
-                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}">{{ num }}</a></li>
             {% endif %}
         {% endfor %}
 
         {% if appeals.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ appeals.next_page_number }}" aria-label="Следующая">
+                <a class="page-link" href="?page={{ appeals.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}" aria-label="Следующая">
                     <span aria-hidden="true">&raquo;</span>
                     <span class="visually-hidden">Следующая</span>
                 </a>

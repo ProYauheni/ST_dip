@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
+from django.urls import reverse
 
 
 class Community(models.Model):
@@ -72,10 +73,13 @@ class ForumPost(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    active = models.BooleanField(default=True)  # поле активности
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('forum_post_detail', kwargs={'pk': self.pk})
 
 
 class Comment(models.Model):
@@ -89,22 +93,46 @@ class Comment(models.Model):
         return f"Комментарий от {self.user.username} к {self.post.title}"
 
 
-# class Advertisement(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+# class Advertisement(models.Model): #объявления
 #     title = models.CharField(max_length=200)
-#     content = models.TextField()
+#     description = models.TextField()
+#     photo = models.ImageField(upload_to='ads_photos/', blank=True, null=True)
+#     contact = models.CharField(max_length=100, verbose_name='Контакт для связи')  # новое обязательное поле
+#     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='advertisements')
 #     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+#
+#     def __str__(self):
+#         return self.title
 class Advertisement(models.Model):
+    TOPIC_CHOICES = [
+        ('sale_rent', 'Продажа/аренда участков'),
+        ('services', 'Услуги'),
+        ('equipment', 'Техника'),
+        ('materials', 'Материалы'),
+        ('garden', 'Сад и огород'),
+        ('other', 'Другое'),
+    ]
+    community = models.ForeignKey(
+        'Community',  # Замените 'Community' на имя вашей модели товарищества
+        on_delete=models.CASCADE,
+        related_name='advertisements',
+        verbose_name='Товарищество'
+    )
+
     title = models.CharField(max_length=200)
     description = models.TextField()
     photo = models.ImageField(upload_to='ads_photos/', blank=True, null=True)
-    contact = models.CharField(max_length=100, verbose_name='Контакт для связи')  # новое обязательное поле
+    contact = models.CharField(max_length=100, verbose_name='Контакт для связи')
+    topic = models.CharField(max_length=20, choices=TOPIC_CHOICES, verbose_name='Тема объявления')
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='advertisements')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
+
 
 
 class Voting(models.Model):

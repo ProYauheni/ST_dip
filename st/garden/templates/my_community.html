@@ -44,42 +44,47 @@
 
 <hr>
 
-<h3 class="text-center mb-4">Новости и важные сообщения</h3>
-
+<h3 class="text-center mb-4" style="color: #2f855a; font-weight: 700; font-size: 1.7rem;">Новости и важные сообщения</h3>
 
 {% if is_chairman_or_board %}
-  <div class="text-center mb-3">
-    <a href="{% url 'add_news' community.id %}" class="btn btn-success">Добавить новость</a>
+  <div class="text-center mb-5">
+    <a href="{% url 'add_news' community.id %}" class="btn btn-success btn-lg px-4" style="font-weight: 400;">
+      Добавить новость
+    </a>
   </div>
 {% endif %}
 
 {% if news %}
-<div class="row">
+<div class="row row-cols-1 row-cols-md-3 g-4">
     {% for item in news %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 text-dark" style="background-color: rgba(213, 237, 218, 1);">
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0" style="background: linear-gradient(135deg, #d1e7dd 0%, #b7dbca 100%); border-radius: 12px;">
             <div class="card-body d-flex flex-column">
-                <h5 class="card-title">{{ item.title }}</h5>
-                <!-- Убрали класс text-truncate-3 -->
+               <h5 class="card-title text-center" style="font-weight: 700; color: #276749; min-height: 3rem;">
+                  {{ item.title }}
+                </h5>
+
+
                 <p class="card-text" id="news-content-{{ forloop.counter }}"
-                   style="overflow: hidden; max-height: 4.5em; transition: max-height 0.3s ease;">
+                   style="overflow: hidden; max-height: 4.5em; line-height: 1.3em; transition: max-height 0.3s ease; color: #1a202c;">
                     {{ item.content }}
                 </p>
-                <small class="news-date text-dark-green mt-auto" id="news-date-{{ forloop.counter }}">
-                    {{ item.created_at|date:"d.m.Y H:i" }}
-                </small>
-
-                <button class="btn btn-link p-0 mt-2 align-self-start text-dark-green read-more-btn"
-                        data-target="news-content-{{ forloop.counter }}" style="display:none;">
+                <button class="btn btn-link p-0 mt-2 align-self-start text-success read-more-btn"
+                        data-target="news-content-{{ forloop.counter }}" style="display:none; font-weight: 600;">
                     Читать полностью
                 </button>
 
+                <small class="news-date text-success mt-auto" id="news-date-{{ forloop.counter }}" style="font-size: 0.85rem;">
+                    {{ item.created_at|date:"d.m.Y H:i" }}
+                </small>
+
                 {% if is_chairman_or_board %}
-                <div class="mt-2 align-self-start d-flex gap-2">
-                    <a href="{% url 'edit_news' item.pk %}" class="btn btn-warning btn-sm">Редактировать</a>
-                    <form method="post" action="{% url 'delete_news' item.pk %}" onsubmit="return confirm('Удалить новость?');">
+                <div class="mt-3 align-self-start d-flex gap-2">
+                    <a href="{% url 'edit_news' item.pk %}" class="btn btn-outline-warning btn-sm" style="font-weight: 600;">Редактировать</a>
+
+                    <form method="post" action="{% url 'delete_news' item.pk %}" onsubmit="return confirm('Удалить новость?');" style="display:inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                        <button type="submit" class="btn btn-outline-danger btn-sm" style="font-weight: 600;">Удалить</button>
                     </form>
                 </div>
                 {% endif %}
@@ -135,7 +140,7 @@
 {% endif %}
 
 {% else %}
-<p class="text-center">Пока нет новостей.</p>
+<p class="text-center" style="font-style: italic; color: #718096;">Пока нет новостей.</p>
 {% endif %}
 
 {% endblock %}
@@ -143,7 +148,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Скрипт для описания сообщества с ограничением в 2 строки и кнопкой "Читать полностью"
+    // Описание сообщества с кнопкой "Читать полностью"
     const description = document.getElementById('community-description');
     const descBtn = document.getElementById('toggle-description-btn');
     if (description && descBtn) {
@@ -161,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Скрипт для новостей, чтобы показывать кнопку "Читать полностью" и раскрывать/сворачивать текст
+    // Кнопки "Читать полностью" для новостей
     const buttons = document.querySelectorAll('.read-more-btn');
 
     buttons.forEach(function(button) {

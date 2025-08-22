@@ -152,3 +152,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465  # или 587 для TLS
+EMAIL_USE_SSL = True  # или False при использовании TLS + EMAIL_USE_TLS = True
+EMAIL_USE_TLS = False  # Если используете SSL, TLS = False
+EMAIL_HOST_USER = 'na-dachy.by@yandex.by'
+EMAIL_HOST_PASSWORD = 'iyrkgpmmyfzihsnt'  # пароль приложения Яндекс
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_ADMIN = EMAIL_HOST_USER

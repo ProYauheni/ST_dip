@@ -5,16 +5,34 @@
 {% block content %}
 <h2 class="text-center mb-4">Доска объявлений</h2>
 
+<!-- Форма сортировки по теме -->
+<form method="get" class="mb-4 text-center">
+  <label for="topic-select" class="form-label me-2">Выберите тему:</label>
+  <select name="topic" id="topic-select" class="form-select d-inline-block w-auto">
+    <option value="" {% if not request.GET.topic %}selected{% endif %}>Все темы</option>
+    <option value="sale_rent" {% if request.GET.topic == "sale_rent" %}selected{% endif %}>Продажа/аренда участков</option>
+    <option value="services" {% if request.GET.topic == "services" %}selected{% endif %}>Услуги</option>
+    <option value="equipment" {% if request.GET.topic == "equipment" %}selected{% endif %}>Техника</option>
+    <option value="materials" {% if request.GET.topic == "materials" %}selected{% endif %}>Материалы</option>
+    <option value="garden" {% if request.GET.topic == "garden" %}selected{% endif %}>Сад и огород</option>
+    <option value="other" {% if request.GET.topic == "other" %}selected{% endif %}>Другое</option>
+  </select>
+  <button type="submit" class="btn btn-primary ms-2">Отсортировать</button>
+</form>
+
 {% if page_obj %}
   <div class="ads-container d-flex flex-wrap justify-content-start gap-3">
     {% for ad in page_obj %}
-      <div class="ad-card bg-light-green border rounded p-3 d-flex flex-column align-items-center">
-        <h5 class="text-center mb-2">{{ ad.title }}</h5>
+      <div class="ad-card">
+        <h5 class="ad-title mb-2">{{ ad.title }}</h5>
+        <p class="text-muted mb-2" style="font-size: 0.9rem; font-style: italic;">
+           {{ ad.community.name }}
+        </p>
 
-        <div class="ad-description description-truncate-5 mb-2" id="desc-{{ forloop.counter }}">
+        <div class="ad-description description-truncate-5 mb-3" id="desc-{{ forloop.counter }}">
           {{ ad.description|linebreaksbr }}
         </div>
-        <button class="btn btn-link p-0 read-more-btn" data-target="desc-{{ forloop.counter }}" style="display:none;">
+        <button class="btn read-more-btn" data-target="desc-{{ forloop.counter }}" style="display:none;">
           Читать полностью
         </button>
 
@@ -22,20 +40,20 @@
           <img src="{{ ad.photo.url }}" alt="{{ ad.title }}" class="ad-photo" data-full="{{ ad.photo.url }}">
         {% endif %}
 
-        <div class="mb-1" style="font-size: 0.9em;">
-          <strong>Контакт:</strong> {{ ad.contact }}
-        </div>
-        <div class="mb-1" style="font-size: 0.8em;">
-          <small>Опубликовано: {{ ad.created_at|date:"d.m.Y H:i" }}</small>
-        </div>
-        <div class="mb-2" style="font-size: 0.8em;">
-          <small>Автор: {{ ad.owner.get_full_name|default:ad.owner.username }}</small>
+        <div class="ad-info mt-auto w-100 d-flex justify-content-between align-items-center">
+          <div class="contact-info">
+            <i class="fas fa-phone-alt"></i> {{ ad.contact }}
+          </div>
+          <div class="post-meta text-end">
+            <small>Опубликовано: {{ ad.created_at|date:"d.m.Y H:i" }}</small><br>
+            <small>Автор: {{ ad.owner.get_full_name|default:ad.owner.username }}</small>
+          </div>
         </div>
 
         {% if user.is_authenticated and ad.owner == user %}
-          <div class="mt-auto">
-            <a href="{% url 'edit_advertisement' ad.pk %}">Редактировать</a> |
-            <a href="{% url 'delete_advertisement' ad.pk %}">Удалить</a>
+          <div class="ad-actions mt-3 text-center">
+            <a href="{% url 'edit_advertisement' ad.pk %}" class="btn btn-sm btn-outline-primary me-2">Редактировать</a>
+            <a href="{% url 'delete_advertisement' ad.pk %}" class="btn btn-sm btn-outline-danger">Удалить</a>
           </div>
         {% endif %}
       </div>
@@ -47,7 +65,7 @@
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+          <a class="page-link" href="?{% if request.GET.topic %}topic={{ request.GET.topic }}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a>
         </li>
       {% else %}
         <li class="page-item disabled">
@@ -60,14 +78,14 @@
           {% if num == page_obj.number %}
             <li class="page-item active"><span class="page-link">{{ num }}</span></li>
           {% else %}
-            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            <li class="page-item"><a class="page-link" href="?{% if request.GET.topic %}topic={{ request.GET.topic }}&{% endif %}page={{ num }}">{{ num }}</a></li>
           {% endif %}
         {% endif %}
       {% endfor %}
 
       {% if page_obj.has_next %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+          <a class="page-link" href="?{% if request.GET.topic %}topic={{ request.GET.topic }}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a>
         </li>
       {% else %}
         <li class="page-item disabled">
@@ -93,45 +111,107 @@
   }
 
   .ad-card {
-    background-color: #ebfaef;
-    color: #000000;
+    background-color: #f9fff9;
     border: 1px solid #c3e6cb;
-    border-radius: 0.375rem;
+    border-radius: 12px;
     padding: 1rem;
-    min-height: 200px;
-    box-sizing: border-box;
-
-    /* На большие экраны ~5 карточек в строке */
-    flex: 0 0 19%;
-    max-width: 19%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 280px;
+    box-sizing: border-box;
+
+    flex: 0 0 19%;
+    max-width: 19%;
     align-items: center;
   }
 
-  /* Ограничение описания 5 строк */
-  .description-truncate-5 {
-    display: -webkit-box;
-    -webkit-line-clamp: 5;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: normal;
-  }
-  .description-expanded {
-    -webkit-line-clamp: unset !important;
-    overflow: visible !important;
+  .ad-card:hover {
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    transform: translateY(-5px);
   }
 
-  /* Стили для фото */
+  .ad-title {
+    font-weight: 700;
+    color: #2f855a;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    position: relative;
+  }
+
+  .ad-title::before {
+    content: "📢";
+    position: absolute;
+    left: -25px;
+    top: 0;
+    font-size: 1.1rem;
+  }
+
+  .ad-description {
+    font-size: 0.95rem;
+    line-height: 1.3em;
+    color: #333;
+  }
+
+  .description-truncate-5 {
+    max-height: 6.5em; /* около 5 строк * 1.3em */
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    white-space: normal;
+  }
+
+  .read-more-btn {
+    background: none;
+    border: none;
+    color: #2f855a;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
   .ad-photo {
-    max-width: 120px;
+    max-width: 150px;
     height: auto;
     object-fit: contain;
     cursor: pointer;
-    border: 1px solid #ccc;
-    padding: 3px;
-    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #c3e6cb;
+    margin: 1rem auto;
+    transition: transform 0.3s ease;
+  }
+
+  .ad-photo:hover {
+    transform: scale(1.05);
+  }
+
+  .ad-info {
+    font-size: 0.85rem;
+    color: #555;
+    border-top: 1px solid #c3e6cb;
+    padding-top: 0.5rem;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .contact-info i {
+    color: #2f855a;
+    margin-right: 6px;
+  }
+
+  .ad-actions {
+    text-align: center;
+  }
+
+  .ad-actions a {
+    text-decoration: none;
+  }
+
+  .ad-actions a:hover {
+    text-decoration: underline;
   }
 
   /* Модальное окно */
@@ -173,137 +253,80 @@
   @media (max-width: 1199.98px) {
     .ad-card {
       flex: 0 0 23%;
-      max-width: 23%; /* 4 в ряд */
+      max-width: 23%;
     }
   }
 
   @media (max-width: 991.98px) {
     .ad-card {
       flex: 0 0 31%;
-      max-width: 31%; /* 3 в ряд */
+      max-width: 31%;
     }
   }
 
   @media (max-width: 767.98px) {
     .ad-card {
       flex: 0 0 48%;
-      max-width: 48%; /* 2 в ряд */
+      max-width: 48%;
     }
   }
 
   @media (max-width: 575.98px) {
     .ad-card {
       flex: 0 0 100%;
-      max-width: 100%; /* 1 в ряд */
+      max-width: 100%;
     }
   }
 </style>
 
 <script>
-<!--  document.addEventListener('DOMContentLoaded', function () {-->
-<!--    // Раскрытие описания-->
-<!--    const descriptions = document.querySelectorAll('.ad-description');-->
-<!--    descriptions.forEach(desc => {-->
-<!--      const btn = desc.nextElementSibling;-->
-<!--      if (!btn || !btn.classList.contains('read-more-btn')) return;-->
-
-<!--      const clone = desc.cloneNode(true);-->
-<!--      clone.style.position = 'absolute';-->
-<!--      clone.style.visibility = 'hidden';-->
-<!--      clone.style.height = 'auto';-->
-<!--      clone.style.webkitLineClamp = 'unset';-->
-<!--      clone.style.display = 'block';-->
-<!--      clone.style.overflow = 'visible';-->
-<!--      clone.style.whiteSpace = 'normal';-->
-<!--      clone.style.width = desc.offsetWidth + 'px';-->
-<!--      document.body.appendChild(clone);-->
-
-<!--      const fullHeight = clone.offsetHeight;-->
-<!--      const limitedHeight = desc.offsetHeight;-->
-
-<!--      document.body.removeChild(clone);-->
-
-<!--      if (fullHeight > limitedHeight) {-->
-<!--        btn.style.display = 'inline';-->
-<!--        btn.addEventListener('click', () => {-->
-<!--          if (desc.classList.contains('description-expanded')) {-->
-<!--            desc.classList.remove('description-expanded');-->
-<!--            btn.textContent = 'Читать полностью';-->
-<!--          } else {-->
-<!--            desc.classList.add('description-expanded');-->
-<!--            btn.textContent = 'Свернуть';-->
-<!--          }-->
-<!--        });-->
-<!--      }-->
-<!--    });-->
-
-<!--    // Увеличение фото-->
-<!--    const modal = document.getElementById('modal-photo');-->
-<!--    const modalImg = document.getElementById('modal-img');-->
-<!--    const modalClose = modal.querySelector('.modal-close');-->
-
-<!--    document.querySelectorAll('.ad-photo').forEach(img => {-->
-<!--      img.addEventListener('click', () => {-->
-<!--        modal.style.display = 'flex';-->
-<!--        modalImg.src = img.dataset.full || img.src;-->
-<!--        modalImg.alt = img.alt || 'Фото объявления';-->
-<!--      });-->
-<!--    });-->
-
-<!--    modalClose.addEventListener('click', () => {-->
-<!--      modal.style.display = 'none';-->
-<!--    });-->
-
-<!--    modal.addEventListener('click', (e) => {-->
-<!--      if (e.target === modal) {-->
-<!--        modal.style.display = 'none';-->
-<!--      }-->
-<!--    });-->
-<!--  });-->
   document.addEventListener('DOMContentLoaded', function () {
-  const buttons = document.querySelectorAll('.read-more-btn');
-  buttons.forEach(btn => {
-    const targetId = btn.getAttribute('data-target');
-    const desc = document.getElementById(targetId);
-    if (!desc) return;
+    const buttons = document.querySelectorAll('.read-more-btn');
+    buttons.forEach(btn => {
+      const targetId = btn.getAttribute('data-target');
+      const desc = document.getElementById(targetId);
+      if (!desc) return;
 
-    // Показываем кнопку, если текст длиннее 300 символов (пример)
-    if (desc.textContent.length > 300) {
-      btn.style.display = 'inline';
-      btn.addEventListener('click', () => {
-        if (desc.classList.contains('description-expanded')) {
-          desc.classList.remove('description-expanded');
-          btn.textContent = 'Читать полностью';
-        } else {
-          desc.classList.add('description-expanded');
-          btn.textContent = 'Свернуть';
-        }
+      const lineHeight = parseFloat(getComputedStyle(desc).lineHeight);
+      const collapsedHeight = 6.5 * lineHeight; // см 6.5em в px
+      if (desc.scrollHeight > collapsedHeight + 1) {
+        btn.style.display = 'inline';
+        desc.style.maxHeight = collapsedHeight + 'px';
+
+        btn.addEventListener('click', () => {
+          if (desc.style.maxHeight !== desc.scrollHeight + 'px') {
+            desc.style.maxHeight = desc.scrollHeight + 'px';
+            btn.textContent = 'Свернуть';
+          } else {
+            desc.style.maxHeight = collapsedHeight + 'px';
+            btn.textContent = 'Читать полностью';
+          }
+        });
+      } else {
+        btn.style.display = 'none';
+      }
+    });
+
+    // Увеличение фото
+    const modal = document.getElementById('modal-photo');
+    const modalImg = document.getElementById('modal-img');
+    const modalClose = modal.querySelector('.modal-close');
+    document.querySelectorAll('.ad-photo').forEach(img => {
+      img.addEventListener('click', () => {
+        modal.style.display = 'flex';
+        modalImg.src = img.dataset.full || img.src;
+        modalImg.alt = img.alt || 'Фото объявления';
       });
-    } else {
-      btn.style.display = 'none';
-    }
-  });
-
-  // Увеличение фото
-  const modal = document.getElementById('modal-photo');
-  const modalImg = document.getElementById('modal-img');
-  const modalClose = modal.querySelector('.modal-close');
-  document.querySelectorAll('.ad-photo').forEach(img => {
-    img.addEventListener('click', () => {
-      modal.style.display = 'flex';
-      modalImg.src = img.dataset.full || img.src;
-      modalImg.alt = img.alt || 'Фото объявления';
+    });
+    modalClose.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
     });
   });
-  modalClose.addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      modal.style.display = 'none';
-    }
-  });
-});
 </script>
 
 {% endblock %}

@@ -3,6 +3,7 @@ from .models import Appeal, Document, Comment, Advertisement, News, DocumentFold
                     BoardMember
 from django.forms import modelformset_factory
 
+
 class AppealForm(forms.ModelForm):
     class Meta:
         model = Appeal
@@ -57,25 +58,50 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ['content', 'parent_id']
-        labels = {'content': '',}  # убираем метку
+        labels = {'content': '',}
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Ваш комментарий...'}),
+            'content': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Ваш комментарий...',
+                'class': 'form-control',
+            }),
         }
 
 
 
-
+# class AdvertisementForm(forms.ModelForm): #форма для объявлений
+#     class Meta:
+#         model = Advertisement
+#         fields = ['title', 'description', 'photo', 'contact']  # добавлено поле contact
+#         labels = {
+#             'title': 'Заголовок',
+#             'description': 'Описание',
+#             'photo': 'Фото',
+#             'contact': 'Контакт для связи',
+#         }
+#         widgets = {
+#             'description': forms.Textarea(attrs={'rows': 4}),
+#             'contact': forms.TextInput(attrs={'placeholder': 'Телефон, email или другой контакт'}),
+#         }
+#
+#     def clean_contact(self):
+#         contact = self.cleaned_data.get('contact')
+#         if not contact or contact.strip() == '':
+#             raise forms.ValidationError('Поле "Контакт для связи" обязательно для заполнения.')
+#         return contact
 class AdvertisementForm(forms.ModelForm):
     class Meta:
         model = Advertisement
-        fields = ['title', 'description', 'photo', 'contact']  # добавлено поле contact
+        fields = ['topic', 'title', 'description', 'photo', 'contact']
         labels = {
+            'topic': 'Тема объявления',
             'title': 'Заголовок',
             'description': 'Описание',
             'photo': 'Фото',
             'contact': 'Контакт для связи',
         }
         widgets = {
+            'topic': forms.Select(attrs={'class': 'form-select'}),
             'description': forms.Textarea(attrs={'rows': 4}),
             'contact': forms.TextInput(attrs={'placeholder': 'Телефон, email или другой контакт'}),
         }
@@ -85,6 +111,7 @@ class AdvertisementForm(forms.ModelForm):
         if not contact or contact.strip() == '':
             raise forms.ValidationError('Поле "Контакт для связи" обязательно для заполнения.')
         return contact
+
 
 
 class NewsForm(forms.ModelForm):
@@ -260,3 +287,11 @@ class CommunityInfoForm(forms.ModelForm):
     class Meta:
         model = Community
         fields = ['legal_address', 'postal_address', 'bank_details', 'additional_info', 'messenger_group_link']
+
+
+
+
+class EmailUpdateForm(forms.Form):
+    email = forms.EmailField(label='Email для восстановления пароля',
+                             max_length=100,
+                             widget=forms.EmailInput(attrs={'class': 'form-control'}))
