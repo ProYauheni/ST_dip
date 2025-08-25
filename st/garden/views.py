@@ -117,11 +117,13 @@ def create_advertisement(request):
         if form.is_valid():
             ad = form.save(commit=False)
             ad.owner = request.user
+            ad.community = request.user.profile.community  # Добавьте эту строку
             ad.save()
             return redirect('ads')
     else:
         form = AdvertisementForm()
     return render(request, 'create_ads.html', {'form': form})
+
 
 
 @login_required
@@ -231,7 +233,7 @@ def my_community(request):
     community = profile.community
 
     # Запрос с исключением "удалённых" новостей
-    news_list = News.objects.filter(community=community, is_deleted=False).order_by('-created_at')
+    news_list = News.objects.filter(community=community, is_deleted=False).order_by('-pinned', '-created_at')
 
     paginator = Paginator(news_list, 9)  # 6 новостей на страницу
 
@@ -848,6 +850,19 @@ def add_news(request, community_id):
         form = NewsForm()
 
     return render(request, 'add_news.html', {'form': form, 'community': community})
+
+
+@login_required
+@user_passes_test(user_can_manage_news)
+def toggle_pin_news(request, pk):
+    if request.method != 'POST':
+        return HttpResponseForbidden("Допускается только POST-запрос")
+
+    news = get_object_or_404(News, pk=pk)
+    news.pinned = not news.pinned
+    news.save()
+    return redirect(request.META.get('HTTP_REFERER', 'my_community'))
+
 
 @login_required
 def delete_news(request, pk):

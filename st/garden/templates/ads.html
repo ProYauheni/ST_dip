@@ -21,18 +21,18 @@
 </form>
 
 {% if page_obj %}
-  <div class="ads-container d-flex flex-wrap justify-content-start gap-3">
+  <div class="ads-container d-flex flex-wrap gap-3 justify-content-start">
     {% for ad in page_obj %}
-      <div class="ad-card">
+      <div class="ad-card d-flex flex-column">
         <h5 class="ad-title mb-2">{{ ad.title }}</h5>
         <p class="text-muted mb-2" style="font-size: 0.9rem; font-style: italic;">
-           {{ ad.community.name }}
+          {{ ad.community.name }}
         </p>
 
         <div class="ad-description description-truncate-5 mb-3" id="desc-{{ forloop.counter }}">
           {{ ad.description|linebreaksbr }}
         </div>
-        <button class="btn read-more-btn" data-target="desc-{{ forloop.counter }}" style="display:none;">
+        <button class="btn read-more-btn p-0 mb-3" data-target="desc-{{ forloop.counter }}" style="display:none;">
           Читать полностью
         </button>
 
@@ -62,7 +62,7 @@
 
   <!-- Пагинация -->
   <nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
+    <ul class="pagination justify-content-center flex-wrap">
       {% if page_obj.has_previous %}
         <li class="page-item">
           <a class="page-link" href="?{% if request.GET.topic %}topic={{ request.GET.topic }}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a>
@@ -94,7 +94,6 @@
       {% endif %}
     </ul>
   </nav>
-
 {% else %}
   <p class="text-center">Объявления отсутствуют.</p>
 {% endif %}
@@ -169,6 +168,7 @@
     font-weight: 600;
     cursor: pointer;
     margin-bottom: 10px;
+    padding: 0;
   }
 
   .ad-photo {
@@ -268,6 +268,18 @@
     .ad-card {
       flex: 0 0 48%;
       max-width: 48%;
+      min-height: auto; /* Уменьшаем минимальную высоту */
+      padding: 0.8rem;
+    }
+    .ad-title {
+      font-size: 1.1rem;
+    }
+    .ad-description {
+      font-size: 0.9rem;
+    }
+    .ad-photo {
+      max-width: 100%;
+      margin: 1rem 0;
     }
   }
 
@@ -275,6 +287,19 @@
     .ad-card {
       flex: 0 0 100%;
       max-width: 100%;
+      min-height: auto;
+      padding: 0.8rem 1rem;
+    }
+    form select, form button {
+      width: 100%;
+      margin: 0.5rem 0;
+    }
+    form label {
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+    .read-more-btn {
+      font-size: 0.95rem;
     }
   }
 </style>
@@ -307,7 +332,7 @@
       }
     });
 
-    // Увеличение фото
+    // Увеличение фото в модальном окне
     const modal = document.getElementById('modal-photo');
     const modalImg = document.getElementById('modal-img');
     const modalClose = modal.querySelector('.modal-close');

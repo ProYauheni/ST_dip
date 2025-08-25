@@ -56,6 +56,7 @@ urlpatterns = [
     path('community/<int:community_id>/news/add/', views.add_news, name='add_news'),
     path('news/<int:pk>/delete/', views.delete_news, name='delete_news'),
     path('news/<int:pk>/edit/', views.edit_news, name='edit_news'),
+    path('news/<int:pk>/toggle_pin/', views.toggle_pin_news, name='toggle_pin_news'),
 
 
 

@@ -2,7 +2,20 @@
 
 {% block content %}
 <h2 class="text-center my-0">Список всех вопросов и результаты голосования по ним</h2>
-<h3></h3>
+
+<style>
+  .voting-table th:first-child,
+  .voting-table td:first-child {
+    min-width: 260px;
+    max-width: 400px;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+  .voting-table th:not(:first-child),
+  .voting-table td:not(:first-child) {
+    white-space: nowrap;
+  }
+</style>
 
 {% if can_manage %}
   <div class="mb-3 text-end">
@@ -11,62 +24,62 @@
 {% endif %}
 
 {% if votings %}
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Вопрос</th>
-                <th>Товарищество</th>
-                <th class="text-center align-middle">Активно</th>
-                <th class="text-center align-middle">Дата завершения</th>  {# Новый столбец #}
-                <th class="text-center align-middle">Всего голосов</th>
-                <th class="text-center align-middle">"За"</th>
-                <th class="text-center align-middle">"Против"</th>
-                <th class="text-center align-middle">"Воздержались"</th>
-                {% if can_manage %}
-                <th class="text-center align-middle">Действия</th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for voting in votings %}
-            <tr>
-                <td>
-                  {{ voting.question }}
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered align-middle voting-table">
+          <thead class="table-light">
+              <tr>
+                  <th class="text-center">Вопрос</th>
+                  <th class="text-center">Активно</th>
+                  <th class="text-center">Дата завершения</th>
+                  <th class="text-center">Всего голосов</th>
+                  <th class="text-center">"За"</th>
+                  <th class="text-center">"Против"</th>
+                  <th class="text-center">"Воздержались"</th>
                   {% if can_manage %}
-                    <br>
-                    <a href="{% url 'voting_edit' voting.id %}" class="btn btn-warning btn-sm mt-1">Редактировать</a>
+                  <th class="text-center">Действия</th>
                   {% endif %}
-                </td>
-
-                <td>{{ voting.community.name }}</td>
-                <td class="text-center align-middle">{% if voting.active %}Да{% else %}Нет{% endif %}</td>
-                <td class="text-center align-middle">
-                    {% if voting.end_date %}
-                        {{ voting.end_date|date:"d.m.Y H:i" }}
-                    {% else %}
-                        —
+              </tr>
+          </thead>
+          <tbody>
+              {% for voting in votings %}
+              <tr>
+                  <td>
+                    {{ voting.question }}
+                    {% if can_manage %}
+                      <br>
+                      <a href="{% url 'voting_edit' voting.id %}" class="btn btn-warning btn-sm mt-1">Редактировать</a>
                     {% endif %}
-                </td>
-                <td class="text-center align-middle">{{ voting.total_votes }}</td>
-                <td class="text-center align-middle">{{ voting.votes_for }}</td>
-                <td class="text-center align-middle">{{ voting.votes_against }}</td>
-                <td class="text-center align-middle">{{ voting.votes_abstained }}</td>
-                {% if can_manage %}
-                <td class="text-center align-middle">
-                    {% if voting.active %}
-                      <form method="post" action="{% url 'finish_voting' voting.id %}" onsubmit="return confirm('Завершить голосование?');" style="display:inline;">
-                          {% csrf_token %}
-                          <button type="submit" class="btn btn-warning btn-sm">Завершить голосование</button>
-                      </form>
-                    {% else %}
-                      <span class="text-muted">—</span>
-                    {% endif %}
-                </td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                  </td>
+                  <td class="text-center">{% if voting.active %}Да{% else %}Нет{% endif %}</td>
+                  <td class="text-center">
+                      {% if voting.end_date %}
+                          {{ voting.end_date|date:"d.m.Y H:i" }}
+                      {% else %}
+                          —
+                      {% endif %}
+                  </td>
+                  <td class="text-center">{{ voting.total_votes }}</td>
+                  <td class="text-center">{{ voting.votes_for }}</td>
+                  <td class="text-center">{{ voting.votes_against }}</td>
+                  <td class="text-center">{{ voting.votes_abstained }}</td>
+                  {% if can_manage %}
+                  <td class="text-center">
+                      {% if voting.active %}
+                        <form method="post" action="{% url 'finish_voting' voting.id %}"
+                          onsubmit="return confirm('Завершить голосование?');" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning btn-sm">Завершить голосование</button>
+                        </form>
+                      {% else %}
+                        <span class="text-muted">—</span>
+                      {% endif %}
+                  </td>
+                  {% endif %}
+              </tr>
+              {% endfor %}
+          </tbody>
+      </table>
+    </div>
 {% else %}
     <p>Голосований пока нет.</p>
 {% endif %}

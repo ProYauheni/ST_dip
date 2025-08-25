@@ -63,6 +63,7 @@ class News(models.Model):
     content = models.TextField(verbose_name='Описание новости')
     created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)  # Поле мягкого удаления
+    pinned = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title

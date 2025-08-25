@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import PageVisit, Profile
 from datetime import timedelta
+# from .utils import get_nbrb_rates
 
 def total_visits_processor(request):
     counter, created = PageVisit.objects.get_or_create(page_name='main_page')
@@ -32,3 +33,13 @@ def online_users_processor(request):
     active_threshold = now - timedelta(seconds=40)  # считаем активными за последние 40 секунд
     online_count = Profile.objects.filter(last_seen__gte=active_threshold).count()
     return {'online_users': online_count}
+
+
+
+
+
+
+
+# def nbrb_currency_rates(request):
+#     rates = get_nbrb_rates()
+#     return {'nbrb_rates': rates}

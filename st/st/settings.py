@@ -71,6 +71,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'garden.context_processors.total_visits_processor',
                 'garden.context_processors.online_users_processor',
+                # 'garden.context_processors.nbrb_currency_rates',
             ],
         },
     },
