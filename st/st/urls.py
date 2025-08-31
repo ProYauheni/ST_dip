@@ -20,7 +20,7 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin23/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('krasnii_oktyabr/', include('st_kr_ok.urls')),
     path('', include('garden.urls')),
@@ -36,6 +36,7 @@ urlpatterns = [
     path('reset/done/',
          auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'),
          name='password_reset_complete'),
+    path('summernote/', include('django_summernote.urls')),
 ]
 
 

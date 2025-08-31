@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load markdown_extras %}
 
 {% block content %}
 
@@ -68,10 +69,10 @@
                   {{ item.title }}
                 </h5>
 
-                <p class="card-text" id="news-content-{{ forloop.counter }}"
-                   style="overflow: hidden; max-height: 4.5em; line-height: 1.3em; transition: max-height 0.3s ease; color: #1a202c;">
-                    {{ item.content }}
-                </p>
+                <div class="card-text-container" id="news-content-{{ forloop.counter }}"
+                     style="overflow: hidden; max-height: 4.5em; line-height: 1.3em; transition: max-height 0.3s ease; color: #1a202c;">
+                    {{ item.content|markdown }}
+                </div>
                 <button class="btn btn-link p-0 mt-2 align-self-start text-success read-more-btn"
                         data-target="news-content-{{ forloop.counter }}" style="display:none; font-weight: 600;">
                     Читать полностью

@@ -1,77 +1,79 @@
-{# all_appeals_list.html #}
 {% extends 'base.html' %}
 {% block content %}
 <h2 class="text-center align-middle">Все обращения СТ «{{ community.name }}»</h2>
-<table class="table">
-    <thead>
-        <tr>
-            <th>#</th> <!-- Добавлена колонка номера -->
-            <th>Пользователь</th>
-            <th>
-                <a href="?sort=appeal_type{% if request.GET.sort == 'appeal_type' and request.GET.order != 'desc' %}&order=desc{% endif %}">
-                    Тип обращения
-                    {% if request.GET.sort == 'appeal_type' %}
-                        {% if request.GET.order == 'desc' %}
-                            &#9660;
-                        {% else %}
-                            &#9650;
+
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Пользователь</th>
+                <th>
+                    <a href="?sort=appeal_type{% if request.GET.sort == 'appeal_type' and request.GET.order != 'desc' %}&order=desc{% endif %}">
+                        Тип обращения
+                        {% if request.GET.sort == 'appeal_type' %}
+                            {% if request.GET.order == 'desc' %}
+                                &#9660;
+                            {% else %}
+                                &#9650;
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                </a>
-            </th>
-            <th>Текст</th>
-            <th>Дата обращения</th>
-            <th>
-                <a href="?sort=response{% if request.GET.sort == 'response' and request.GET.order != 'desc' %}&order=desc{% endif %}">
-                    Ответ
-                    {% if request.GET.sort == 'response' %}
-                        {% if request.GET.order == 'desc' %}
-                            &#9660;
-                        {% else %}
-                            &#9650;
+                    </a>
+                </th>
+                <th>Текст</th>
+                <th>Дата обращения</th>
+                <th>
+                    <a href="?sort=response{% if request.GET.sort == 'response' and request.GET.order != 'desc' %}&order=desc{% endif %}">
+                        Ответ
+                        {% if request.GET.sort == 'response' %}
+                            {% if request.GET.order == 'desc' %}
+                                &#9660;
+                            {% else %}
+                                &#9650;
+                            {% endif %}
                         {% endif %}
+                    </a>
+                </th>
+                <th>Ответил</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appeal in appeals %}
+            <tr>
+                <td>{{ forloop.revcounter }}</td>
+                <td>{{ appeal.user.get_full_name|default:appeal.user.username }}</td>
+                <td>{{ appeal.get_appeal_type_display }}</td>
+                <td>{{ appeal.text|truncatewords:20 }}</td>
+                <td>{{ appeal.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if appeal.response %}
+                        {{ appeal.response|truncatewords:20 }}
+                    {% else %}
+                        <em style="font-weight: bold; color: red;">Нет ответа</em>
                     {% endif %}
-                </a>
-            </th>
-            <th>Ответил</th>
-            <th>Действия</th>  <!-- Добавляем колонку для ссылок -->
-        </tr>
-    </thead>
-    <tbody>
-        {% for appeal in appeals %}
-        <tr>
-            <td>{{ forloop.revcounter }}</td> <!-- Глобальная обратная нумерация -->
-            <td>{{ appeal.user.get_full_name|default:appeal.user.username }}</td>
-            <td>{{ appeal.get_appeal_type_display }}</td>
-            <td>{{ appeal.text|truncatewords:20 }}</td>
-            <td>{{ appeal.created_at|date:"d.m.Y H:i" }}</td>
-            <td>
-                {% if appeal.response %}
-                    {{ appeal.response|truncatewords:20 }}
-                {% else %}
-                    <em style="font-weight: bold; color: red;">Нет ответа</em>
-                {% endif %}
-            </td>
-            <td>
-                {% if appeal.responder %}
-                    {{ appeal.responder.get_full_name|default:appeal.responder.username }}
-                {% else %}
-                    <em>—</em>
-                {% endif %}
-            </td>
-            <td>
-                <a href="{% url 'appeal_detail_and_respond' appeal.id %}" class="btn btn-sm btn-primary">
-                    Ответить
-                </a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="8" class="text-center">Обращений нет.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                </td>
+                <td>
+                    {% if appeal.responder %}
+                        {{ appeal.responder.get_full_name|default:appeal.responder.username }}
+                    {% else %}
+                        <em>—</em>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'appeal_detail_and_respond' appeal.id %}" class="btn btn-sm btn-primary">
+                        Ответить
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">Обращений нет.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 {# Пагинация #}
 {% if appeals.has_other_pages %}

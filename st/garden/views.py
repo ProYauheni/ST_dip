@@ -25,7 +25,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 
-
+def community_disabled(request):
+    return render(request, 'community_disabled.html')
 
 
 

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import community_disabled
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -14,7 +15,7 @@ urlpatterns = [
     path('ads/<int:pk>/edit/', views.edit_advertisement, name='edit_advertisement'),
     path('ads/<int:pk>/delete/', views.delete_advertisement, name='delete_advertisement'),
     path('my_community/', views.my_community, name='my_community'),
-
+    path('community-disabled/', community_disabled, name='community_disabled'),
     path('voting/', views.voting_list, name='voting_list'),
     path('voting/<int:voting_id>/', views.voting_detail, name='voting_detail'),
 
@@ -39,8 +40,6 @@ urlpatterns = [
 
     path('my_community/contacts/', views.contacts_view, name='community_contacts'),
     path('my_community/contacts/edit/', views.community_contact_edit, name='community_contact_edit'),
-
-
     path('community/contacts/edit-all/', views.community_contacts_edit_all, name='community_contacts_edit_all'),
 
     path('my_community/payment/', views.payment_view, name='community_payment'),

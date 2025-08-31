@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-lhg3pw4-=l&v!@h#1kqp2-g+6e+i71wj!1u02l=i+iat@rb#3g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 # ALLOWED_HOSTS = ['na-dachy.by', 'www.na-dachy.by']
 
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'st_kr_ok',
     'garden',
     'adminsortable2',
+    'django_summernote',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'garden.middleware.CommunityActiveMiddleware'
 ]
 
 ROOT_URLCONF = 'st.urls'
@@ -167,3 +169,18 @@ EMAIL_HOST_PASSWORD = 'iyrkgpmmyfzihsnt'  # пароль приложения Я
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 EMAIL_ADMIN = EMAIL_HOST_USER
+
+
+
+# SUMMERNOTE_CONFIG = {
+#     'toolbar': [
+#         ['style', ['bold', 'italic', 'underline', 'clear']],
+#         ['font', ['strikethrough']],
+#         ['para', ['ul', 'ol', 'paragraph']],
+#         ['height', ['height']],
+#         ['help', ['help']],
+#     ],
+#     # Можно добавить другие настройки, например размер и язык
+#     'width': '600px',
+#     'height': '200px',
+# }

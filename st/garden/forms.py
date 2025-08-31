@@ -2,6 +2,7 @@ from django import forms
 from .models import Appeal, Document, Comment, Advertisement, News, DocumentFolder, Voting, PaymentInfo, Community, \
                     BoardMember
 from django.forms import modelformset_factory
+from django_summernote.widgets import SummernoteWidget
 
 
 class AppealForm(forms.ModelForm):
@@ -118,9 +119,18 @@ class NewsForm(forms.ModelForm):
     class Meta:
         model = News
         fields = ['title', 'content']
+        labels = {
+            'title': 'Заголовок',
+            'content': 'Описание новости (Фото и видео прикрепить нельзя) :',
+        }
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+            'content': SummernoteWidget(attrs={
+                'summernote': {
+                    'width': '1000px',   # желаемая ширина
+                    'height': '250px',  # желаемая высота
+                }
+            }),
         }
 
 

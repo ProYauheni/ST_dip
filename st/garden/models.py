@@ -22,6 +22,7 @@ class Community(models.Model):
         help_text="Ссылка на группу Viber или другую мессенджер-группу."
     )
 
+    is_active = models.BooleanField(default=True, verbose_name="Активно на сайте")
 
     def __str__(self):
         return self.name
@@ -60,7 +61,7 @@ def is_chairman_or_board_member(user, community):
 class News(models.Model):
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='news')
     title = models.CharField(max_length=200, verbose_name='Заголовок')
-    content = models.TextField(verbose_name='Описание новости')
+    content = models.TextField(verbose_name='Описание новости ')
     created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)  # Поле мягкого удаления
     pinned = models.BooleanField(default=False)
@@ -159,16 +160,12 @@ class Vote(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     choice = models.CharField(max_length=10, choices=VOTE_CHOICES)
 
-    def __str__(self):
-        return f'{self.user}: {self.get_choice_display()}'
+    # def __str__(self):
+    #     return f'{self.user}: {self.get_choice_display()}'
 
-# class Vote(models.Model):
-#     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     choice = models.BooleanField()
-#
-#     def __str__(self):
-#         return str(self.choice)
+    def __str__(self):
+        return ""
+
 
 
 class PageVisit(models.Model):
