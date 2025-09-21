@@ -2,10 +2,10 @@ from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Profile, ForumPost, Advertisement, News, Voting, Vote, Voting, PageVisit, Appeal, Community, Document, \
-    Comment, DocumentFolder, PaymentInfo, BoardMember
+    Comment, DocumentFolder, PaymentInfo, BoardMember, Ballot, BallotQuestion, BallotVote
 from .forms import AppealForm, AppealResponseForm, DocumentForm, CommentForm, AdvertisementForm, NewsForm, VotingForm, \
     PaymentInfoForm, CommunityPaymentInfoForm, VotingEditForm, BoardMemberForm, CommunityInfoForm, BoardMemberFormSet, \
-    EmailUpdateForm
+    EmailUpdateForm, BallotForm, BallotVoteForm, BallotQuestionFormSet
 
 from django.contrib import messages
 from django.utils import timezone
@@ -19,6 +19,10 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from django.http import JsonResponse
 from django import forms
+from django.forms import modelform_factory, inlineformset_factory
+from django.db import transaction
+from django import forms as django_forms
+
 
 
 from django.views.decorators.csrf import csrf_exempt
@@ -168,7 +172,15 @@ def voting_list(request):
         return render(request, 'no_profile.html')  # или сообщение об ошибке
 
     votings = Voting.objects.filter(community=community, active=True).order_by('-created_at')
-    return render(request, 'voting_list.html', {'votings': votings})
+
+    context = {
+        'votings': votings,
+        'community': community,
+        'is_chairman': request.user.profile.role == 'chairman',
+        'is_board_member': request.user.profile.role == 'board_member',
+    }
+    return render(request, 'voting_list.html', context)
+
 
 
 
@@ -224,6 +236,17 @@ def voting_edit(request, voting_id):
         form = VotingEditForm(instance=voting)
 
     return render(request, 'voting_edit.html', {'form': form, 'voting': voting})
+
+
+@login_required
+def delete_voting(request, voting_id):
+    voting = get_object_or_404(Voting, id=voting_id)
+    if request.method == 'POST':
+        voting.delete()
+        messages.success(request, "Опрос успешно удалён.")
+        return redirect('voting_list')
+    return render(request, 'confirm_delete.html', {'object': voting})
+
 
 
 
@@ -933,3 +956,207 @@ def profile_view(request):
     return render(request, 'profile.html', context)
 
 
+
+"""=======================================155 Ykaz======================================================"""
+@login_required
+def create_ballot(request):
+    BallotQuestionFormSet = inlineformset_factory(
+        Ballot, BallotQuestion,
+        fields=('text',),  # убрано поле project_decision
+        extra=1,
+        can_delete=True,
+        widgets={
+            'text': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    )
+
+    if request.method == 'POST':
+        form = BallotForm(request.POST, request.FILES)
+        formset = BallotQuestionFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            ballot = form.save(commit=False)
+            # устанавливаем связь с сообществом, если необходимо
+            ballot.community = request.user.profile.community
+            ballot.active = True  # Устанавливаем по умолчанию активность
+            ballot.save()
+            formset.instance = ballot
+            formset.save()
+            return redirect('ballot_vote', ballot_id=ballot.id)
+    else:
+        form = BallotForm()
+        formset = BallotQuestionFormSet()
+
+    return render(request, 'ballot_create.html', {
+        'form': form,
+        'formset': formset,
+    })
+
+@login_required
+@user_passes_test(user_is_board_member)
+def edit_ballot(request, ballot_id):
+    ballot = get_object_or_404(Ballot, id=ballot_id)
+    formset_class = BallotQuestionFormSet
+    if request.method == 'POST':
+        form = BallotForm(request.POST, request.FILES, instance=ballot)
+        formset = formset_class(request.POST, instance=ballot)
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            messages.success(request, "Бюллетень успешно обновлен!")
+            return redirect('ballot_list')
+        else:
+            print(form.errors)
+            print(formset.errors)
+    else:
+        form = BallotForm(instance=ballot)
+        formset = formset_class(instance=ballot)
+
+    return render(request, 'ballot_edit.html', {'form': form, 'formset': formset, 'ballot': ballot})
+
+
+
+
+@login_required
+def ballot_list(request):
+    community = getattr(request.user.profile, 'community', None)
+    if not community:
+        return render(request, 'no_profile.html')
+    ballots = Ballot.objects.filter(community=community).order_by('-created_at')  # убрали active=True
+    user_role = getattr(request.user.profile, 'role', None)
+    context = {
+        'community': community,
+        'ballots': ballots,
+        'is_chairman': (user_role == 'chairman'),
+        'is_board_member': (user_role == 'board_member'),
+    }
+    return render(request, 'ballot_list.html', context)
+    return render(request, 'ballot_list.html', context)
+
+
+
+@login_required
+def vote_question(request, question_id):
+    question = get_object_or_404(BallotQuestion, id=question_id)
+    vote, created = BallotVote.objects.get_or_create(user=request.user, question=question)
+    if request.method == 'POST':
+        form = BallotVoteForm(request.POST, instance=vote)
+        if form.is_valid():
+            form.save()
+            return redirect('ballot_vote', ballot_id=question.ballot.id)
+    else:
+        form = BallotVoteForm(instance=vote)
+    return render(request, 'vote_question.html', {'form': form, 'question': question})
+
+@login_required
+def ballot_vote(request, ballot_id):
+    community = getattr(request.user.profile, 'community', None)
+    ballot = get_object_or_404(Ballot, id=ballot_id)
+    questions = ballot.questions.all()
+    BallotVoteForm = modelform_factory(
+        BallotVote,
+        fields=['choice'],
+        widgets={'choice': django_forms.RadioSelect},
+    )
+
+    forms = []
+
+    if request.method == 'POST':
+        valid = True
+        forms = []
+
+        for question in questions:
+            form = BallotVoteForm(request.POST, prefix=str(question.id))
+            forms.append((question, form))
+            if not form.is_valid():
+                valid = False
+
+        if valid:
+            with transaction.atomic():
+                for question, form in forms:
+                    vote, created = BallotVote.objects.get_or_create(user=request.user, question=question)
+                    vote.choice = form.cleaned_data['choice']
+                    vote.save()
+            messages.success(request, "Спасибо, ваши голоса успешно отправлены!")
+            return redirect('ballot_vote', ballot_id=ballot.id)
+
+    else:
+        forms = []
+        for question in questions:
+            vote = BallotVote.objects.filter(user=request.user, question=question).first()
+            form = BallotVoteForm(instance=vote, prefix=str(question.id))
+            forms.append((question, form))
+
+    return render(request, 'ballot_vote.html', {'community': community,'ballot': ballot, 'forms': forms})
+
+
+
+@user_passes_test(user_is_board_member)
+@login_required
+def delete_ballot(request, ballot_id):
+    ballot = get_object_or_404(Ballot, id=ballot_id)
+    if request.method == 'POST':
+        ballot.delete()
+        messages.success(request, "Бюллетень успешно удален.")
+        return redirect('ballot_list')
+    return redirect('ballot_list')
+
+
+@login_required
+def ballot_results(request, ballot_id):
+    ballot = get_object_or_404(Ballot, id=ballot_id)
+    questions = ballot.questions.all()
+
+    results = []
+    for question in questions:
+        # Вместо 'abstain' подставьте точное значение, используемое для воздержавшихся в модели
+        votes_for = BallotVote.objects.filter(question=question, choice='for').count()
+        votes_against = BallotVote.objects.filter(question=question, choice='against').count()
+        votes_abstain = BallotVote.objects.filter(question=question,
+                                                  choice='abstained').count()  # Проверьте правильность
+
+        results.append({
+            'question': question,
+            'votes_for': votes_for,
+            'votes_against': votes_against,
+            'votes_abstain': votes_abstain,
+            'total_votes': votes_for + votes_against + votes_abstain,
+        })
+
+    return render(request, 'ballot_results.html', {
+        'ballot': ballot,
+        'results': results,
+    })
+
+
+def ballot_voters(request, ballot_id):
+    ballot = get_object_or_404(Ballot, id=ballot_id)
+    questions = ballot.questions.all()
+
+    # Получаем все голоса по вопросам бюллетеня
+    votes = BallotVote.objects.filter(question__in=questions).select_related('user', 'question')
+
+    votes_by_user = {}
+    for vote in votes:
+        user = vote.user
+        if user not in votes_by_user:
+            votes_by_user[user] = {}
+        votes_by_user[user][vote.question] = vote  # сохраняем сам объект
+
+    return render(request, 'ballot_voters.html', {
+        'ballot': ballot,
+        'votes_by_user': votes_by_user,
+    })
+
+
+@login_required
+# @user_passes_test(user_is_chairman)
+def finish_ballot(request, ballot_id):
+    ballot = get_object_or_404(Ballot, id=ballot_id)
+    if request.method == 'POST':
+        ballot.active = False
+        ballot.save()
+        messages.success(request, 'Голосование успешно завершено.')
+        return redirect('ballot_list')
+    return redirect('ballot_list')
+
+"""============================================================================================================"""

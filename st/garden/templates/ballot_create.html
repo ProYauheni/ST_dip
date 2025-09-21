@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Создать бюллетень</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <h3>Вопросы</h3>
+    {{ formset.management_form }}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Вопрос</th>
+                <th class="text-center">Удалить</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for question_form in formset %}
+                <tr>
+                    {% for hidden in question_form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                    <td>
+                        {{ question_form.text }}
+                        {% if question_form.text.errors %}
+                            <div class="text-danger">{{ question_form.text.errors }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {{ question_form.DELETE }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="text-muted">* Чтобы добавить новый вопрос — заполните пустую строку в таблице</p>
+
+    <button type="submit" class="btn btn-primary">Сохранить бюллетень</button>
+    <a href="{% url 'ballot_list' %}" class="btn btn-secondary ms-2">Отмена</a>
+
+</form>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const formsetPrefix = '{{ formset.prefix }}';
+    const totalFormsInput = document.querySelector(`input[name="${formsetPrefix}-TOTAL_FORMS"]`);
+    const formsetTableBody = document.querySelector('table tbody');
+
+    function updateTotalForms(increment = 1) {
+        totalFormsInput.value = parseInt(totalFormsInput.value) + increment;
+    }
+
+    function addForm() {
+        const totalForms = parseInt(totalFormsInput.value);
+        const lastFormRow = formsetTableBody.querySelector(`tr:nth-child(${totalForms})`);
+        let newRow = lastFormRow.cloneNode(true);
+
+        // Очистить все значения input в клоне
+        newRow.querySelectorAll('input').forEach(input => {
+            if (input.type === "checkbox") {
+                input.checked = false;
+            } else {
+                input.value = '';
+            }
+        });
+
+        // Обновить имя и id у каждого input, чтобы соответствовали новому индексу
+        newRow.querySelectorAll('input, select, textarea').forEach(elem => {
+            let name = elem.name;
+            let id = elem.id;
+            const regex = new RegExp(`-${totalForms - 1}-`);
+            const newName = name.replace(regex, `-${totalForms}-`);
+            const newId = id.replace(`_${totalForms - 1}_`, `_${totalForms}_`);
+            elem.name = newName;
+            elem.id = newId;
+        });
+
+        formsetTableBody.appendChild(newRow);
+        updateTotalForms();
+    }
+
+    formsetTableBody.addEventListener('input', function(event) {
+        const totalForms = parseInt(totalFormsInput.value);
+        const target = event.target;
+
+        if (target.name === `${formsetPrefix}-${totalForms - 1}-text` && target.value.trim() !== '') {
+            addForm();
+        }
+    });
+});
+</script>
+
+{% endblock %}

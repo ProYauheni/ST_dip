@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .content-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    padding: 20px 0;
+  }
+  .left-column,
+  .right-column {
+    flex: 1 1 45%;
+    min-width: 300px;
+    padding: 0 15px;
+  }
+
+  /* Адаптация для мобильных экранов */
+  @media (max-width: 768px) {
+    .content-container {
+      flex-direction: column;
+    }
+    .left-column,
+    .right-column {
+      flex: 1 1 100%;
+      min-width: auto;
+      padding: 0;
+    }
+  }
+
+  .ballot-info {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgb(0 0 0 / 0.1);
+    padding: 25px;
+  }
+
+  .question-block {
+    background: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: inset 0 0 8px rgb(0 0 0 / 0.05);
+    padding: 15px 20px;
+    margin-bottom: 20px;
+  }
+
+  button.btn-primary {
+    background: linear-gradient(45deg, #0069d9, #0053ba);
+    border: none;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgb(0 81 250 / 0.3);
+    transition: background 0.3s ease;
+  }
+
+  button.btn-primary:hover {
+    background: linear-gradient(45deg, #0053ba, #0069d9);
+  }
+
+  h3.text-center {
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #343a40;
+  }
+
+  h2 {
+    margin-bottom: 25px;
+    color: #212529;
+  }
+
+  label {
+    cursor: pointer;
+  }
+  .btn-custom-gray {
+  background-color: #6c757d; /* серый фон */
+  color: white; /* белый текст */
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  text-decoration: none;
+  display: inline-block;
+  transition: background-color 0.3s ease;
+}
+
+.btn-custom-gray:hover {
+  background-color: #5a6268; /* чуть темнее при наведении */
+  color: white;
+  text-decoration: none;
+}
+</style>
+
+<div class="content-container">
+  <div class="left-column ballot-info">
+    <h3 class="text-center">Бюллетень заочного голосования СТ «{{ community.name }}» от {{ ballot.start_date|date:"d.m.Y" }}:</h3>
+    <p><strong>Повестка дня:</strong></p>
+    <div>{{ ballot.agenda|safe }}</div>
+    <p><strong>Инструкции по заполнению:</strong></p>
+    <div>{{ ballot.instructions|safe }}</div>
+    <p><strong>Место представления:</strong> {{ ballot.submission_place }}</p>
+    <p><strong>Начало голосования:</strong> {{ ballot.start_date }}</p>
+    <p><strong>Окончание голосования:</strong> {{ ballot.end_date }}</p>
+    <p><strong>Заседание счетной комиссии:</strong> {{ ballot.counting_commission_date }}</p>
+    {% if ballot.documents %}
+      <p><a href="{{ ballot.documents.url }}" class="link-primary">Просмотреть документ</a></p>
+    {% endif %}
+  </div>
+
+  <div class="right-column" >
+    <h2 class="text-center">Вопросы для голосования:</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for question, form in forms %}
+        <div class="question-block shadow-sm">
+          <h5>{{ question.text }}</h5>
+          <p><em>{{ question.decision_project }}</em></p>
+          <div>
+            {% for value, label in form.choice.field.choices %}
+              {% if value != '' %}
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="{{ form.choice.html_name }}" id="{{ form.choice.html_name }}_{{ forloop.counter }}" value="{{ value }}"
+                    {% if form.choice.value == value %}checked{% endif %} />
+                  <label class="form-check-label" for="{{ form.choice.html_name }}_{{ forloop.counter }}">
+                    {{ label }}
+                  </label>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+          {% if form.choice.errors %}
+            <div class="text-danger mt-2">{{ form.choice.errors }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary mt-3">Отправить голоса</button>
+    </form>
+  </div>
+</div>
+
+<a href="{% url 'ballot_list' %}" class="btn btn-custom-gray mt-4">Вернуться к списку бюллетеней</a>
+
+{% endblock %}

@@ -1,8 +1,9 @@
 from django import forms
 from .models import Appeal, Document, Comment, Advertisement, News, DocumentFolder, Voting, PaymentInfo, Community, \
-                    BoardMember
+                    BoardMember, BallotVote, Ballot, BallotQuestion
 from django.forms import modelformset_factory
 from django_summernote.widgets import SummernoteWidget
+from django.forms import inlineformset_factory
 
 
 class AppealForm(forms.ModelForm):
@@ -223,7 +224,7 @@ class CommunityPaymentInfoForm(forms.ModelForm):
             'legal_address': forms.Textarea(attrs={'rows': 1, 'style': 'width: 700px;'}),
             'postal_address': forms.Textarea(attrs={'rows': 1, 'style': 'width: 730px;'}),
             'bank_details': forms.Textarea(attrs={'rows': 2, 'style': 'width: 684px;'}),
-            'additional_info': forms.Textarea(attrs={'rows': 3, 'style': 'width: 630px;'}),
+            'additional_info': forms.Textarea(attrs={'rows': 3, 'style': 'width: 60px;'}),
         }
 
 
@@ -305,3 +306,96 @@ class EmailUpdateForm(forms.Form):
     email = forms.EmailField(label='Email для восстановления пароля',
                              max_length=100,
                              widget=forms.EmailInput(attrs={'class': 'form-control'}))
+
+
+"""=============================Голосовалка по 155 указу=================================="""
+class BallotForm(forms.ModelForm):
+    agenda = forms.CharField(
+        widget=SummernoteWidget(attrs={'summernote': {'width': '100%', 'height': '300px'}}),
+        label='Повестка дня общего собрания'
+    )
+    instructions = forms.CharField(
+        required=False,
+        widget=SummernoteWidget(attrs={'summernote': {'width': '100%', 'height': '200px'}}),
+        label='Порядок заполнения бюллетеня'
+    )
+    submission_place = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        label='Место представления заполненных бюллетеней'
+    )
+    start_date = forms.DateTimeField(
+        required=True,
+        widget=forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+        label='Дата и время начала голосования',
+        input_formats=['%Y-%m-%dT%H:%M']
+    )
+    end_date = forms.DateTimeField(
+        required=True,
+        widget=forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+        label='Дата и время окончания голосования',
+        input_formats=['%Y-%m-%dT%H:%M']
+    )
+    counting_commission_date = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
+        label='Дата заседания счетной комиссии',
+        input_formats=['%Y-%m-%d']
+    )
+    documents = forms.FileField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+        label='Документы и материалы'
+    )
+    active = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label='Активно'
+    )
+
+    class Meta:
+        model = Ballot
+        fields = [
+            'agenda', 'instructions', 'submission_place', 'start_date', 'end_date',
+            'counting_commission_date', 'documents', 'active'
+        ]
+
+
+class BallotQuestionForm(forms.ModelForm):
+    text = forms.CharField(
+        required=True,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        label='Формулировка вопроса'
+    )
+    decision_project = forms.CharField(
+        required=True,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        label='Формулировка проекта решения'
+    )
+
+    class Meta:
+        model = BallotQuestion
+        fields = ['text', 'decision_project']
+
+BallotQuestionFormSet = inlineformset_factory(
+    Ballot, BallotQuestion,
+    form=forms.modelform_factory(BallotQuestion, fields=('text',), widgets={
+        'text': forms.TextInput(attrs={'class': 'form-control'})
+    }),
+    extra=1,
+    can_delete=True
+)
+
+class BallotVoteForm(forms.ModelForm):
+    choice = forms.ChoiceField(
+        choices=[('for', 'За'), ('against', 'Против'), ('abstained', 'Воздержался')],
+        widget=forms.RadioSelect,
+        required=True,
+    )
+
+    class Meta:
+        model = BallotVote
+        fields = ['choice']
+
+
+"""======================================================================================="""

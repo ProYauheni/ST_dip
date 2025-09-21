@@ -14,147 +14,147 @@
     {% csrf_token %}
 
     <table class="table table-bordered mb-4">
-  <thead>
-    <tr>
-      <th>Роль</th>
-      <th>ФИО</th>
-      <th>Участок</th>
-      <th>Телефон</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Председатель правления</td>
-      <td>
-        {{ chairman_form.full_name }}
-        {% if chairman_form.full_name.errors %}
-          <div class="text-danger">{{ chairman_form.full_name.errors }}</div>
-        {% endif %}
-      </td>
-      <td>
-        {{ chairman_form.plot_number }}
-        {% if chairman_form.plot_number.errors %}
-          <div class="text-danger">{{ chairman_form.plot_number.errors }}</div>
-        {% endif %}
-      </td>
-      <td>
-        {{ chairman_form.phone }}
-        {% if chairman_form.phone.errors %}
-          <div class="text-danger">{{ chairman_form.phone.errors }}</div>
-        {% endif %}
-      </td>
-    </tr>
-    <tr>
-      <td>Казначей</td>
-      <td>
-        {{ treasurer_form.full_name }}
-        {% if treasurer_form.full_name.errors %}
-          <div class="text-danger">{{ treasurer_form.full_name.errors }}</div>
-        {% endif %}
-      </td>
-      <td>
-        {{ treasurer_form.plot_number }}
-        {% if treasurer_form.plot_number.errors %}
-          <div class="text-danger">{{ treasurer_form.plot_number.errors }}</div>
-        {% endif %}
-      </td>
-      <td>
-        {{ treasurer_form.phone }}
-        {% if treasurer_form.phone.errors %}
-          <div class="text-danger">{{ treasurer_form.phone.errors }}</div>
-        {% endif %}
-      </td>
-    </tr>
-    <tr>
-      <td>Ответственный за электрохозяйство</td>
-      <td>
-        {{ electricity_manager_form.full_name }}
-        {% if electricity_manager_form.full_name.errors %}
-          <div class="text-danger">{{ electricity_manager_form.full_name.errors }}</div>
-        {% endif %}
-      </td>
-      <td>
-        {{ electricity_manager_form.plot_number }}
-        {% if electricity_manager_form.plot_number.errors %}
-          <div class="text-danger">{{ electricity_manager_form.plot_number.errors }}</div>
-        {% endif %}
-      </td>
-      <td>
-        {{ electricity_manager_form.phone }}
-        {% if electricity_manager_form.phone.errors %}
-          <div class="text-danger">{{ electricity_manager_form.phone.errors }}</div>
-        {% endif %}
-      </td>
-    </tr>
-    <tr>
-      <td>Ответственный за водохозяйство</td>
-      <td>
-        {{ water_manager_form.full_name }}
-        {% if water_manager_form.full_name.errors %}
-          <div class="text-danger">{{ water_manager_form.full_name.errors }}</div>
-        {% endif %}
-      </td>
-      <td>
-        {{ water_manager_form.plot_number }}
-        {% if water_manager_form.plot_number.errors %}
-          <div class="text-danger">{{ water_manager_form.plot_number.errors }}</div>
-        {% endif %}
-      </td>
-      <td>
-        {{ water_manager_form.phone }}
-        {% if water_manager_form.phone.errors %}
-          <div class="text-danger">{{ water_manager_form.phone.errors }}</div>
-        {% endif %}
-      </td>
-    </tr>
-  </tbody>
-</table>
+      <thead>
+        <tr>
+          <th>Роль</th>
+          <th>ФИО</th>
+          <th>Участок</th>
+          <th>Телефон</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Председатель правления</td>
+          <td>
+            {{ chairman_form.full_name }}
+            {% if chairman_form.full_name.errors %}
+              <div class="text-danger">{{ chairman_form.full_name.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ chairman_form.plot_number }}
+            {% if chairman_form.plot_number.errors %}
+              <div class="text-danger">{{ chairman_form.plot_number.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ chairman_form.phone }}
+            {% if chairman_form.phone.errors %}
+              <div class="text-danger">{{ chairman_form.phone.errors }}</div>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>Казначей</td>
+          <td>
+            {{ treasurer_form.full_name }}
+            {% if treasurer_form.full_name.errors %}
+              <div class="text-danger">{{ treasurer_form.full_name.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ treasurer_form.plot_number }}
+            {% if treasurer_form.plot_number.errors %}
+              <div class="text-danger">{{ treasurer_form.plot_number.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ treasurer_form.phone }}
+            {% if treasurer_form.phone.errors %}
+              <div class="text-danger">{{ treasurer_form.phone.errors }}</div>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>Ответственный за электрохозяйство</td>
+          <td>
+            {{ electricity_manager_form.full_name }}
+            {% if electricity_manager_form.full_name.errors %}
+              <div class="text-danger">{{ electricity_manager_form.full_name.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ electricity_manager_form.plot_number }}
+            {% if electricity_manager_form.plot_number.errors %}
+              <div class="text-danger">{{ electricity_manager_form.plot_number.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ electricity_manager_form.phone }}
+            {% if electricity_manager_form.phone.errors %}
+              <div class="text-danger">{{ electricity_manager_form.phone.errors }}</div>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>Ответственный за водохозяйство</td>
+          <td>
+            {{ water_manager_form.full_name }}
+            {% if water_manager_form.full_name.errors %}
+              <div class="text-danger">{{ water_manager_form.full_name.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ water_manager_form.plot_number }}
+            {% if water_manager_form.plot_number.errors %}
+              <div class="text-danger">{{ water_manager_form.plot_number.errors }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ water_manager_form.phone }}
+            {% if water_manager_form.phone.errors %}
+              <div class="text-danger">{{ water_manager_form.phone.errors }}</div>
+            {% endif %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <hr>
 
     <!-- Formset членов правления -->
     <h4>Члены правления</h4>
     {{ board_member_formset.management_form }}
-<table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>ФИО</th>
-      <th>Участок</th>
-      <th>Телефон</th>
-      <th>Удалить</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for form in board_member_formset %}
-      <tr>
-        {% for hidden in form.hidden_fields %}
-          {{ hidden }}
+    <table class="table table-bordered" id="board-member-table">
+      <thead>
+        <tr>
+          <th>ФИО</th>
+          <th>Участок</th>
+          <th>Телефон</th>
+          <th>Удалить</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for form in board_member_formset %}
+          <tr>
+            {% for hidden in form.hidden_fields %}
+              {{ hidden }}
+            {% endfor %}
+            <td>
+              {{ form.full_name }}
+              {% if form.full_name.errors %}
+                <div class="text-danger">{{ form.full_name.errors }}</div>
+              {% endif %}
+            </td>
+            <td>
+              {{ form.plot_number }}
+              {% if form.plot_number.errors %}
+                <div class="text-danger">{{ form.plot_number.errors }}</div>
+              {% endif %}
+            </td>
+            <td>
+              {{ form.phone }}
+              {% if form.phone.errors %}
+                <div class="text-danger">{{ form.phone.errors }}</div>
+              {% endif %}
+            </td>
+            <td class="text-center align-middle">
+              {{ form.DELETE }}
+            </td>
+          </tr>
         {% endfor %}
-        <td>
-          {{ form.full_name }}
-          {% if form.full_name.errors %}
-            <div class="text-danger">{{ form.full_name.errors }}</div>
-          {% endif %}
-        </td>
-        <td>
-          {{ form.plot_number }}
-          {% if form.plot_number.errors %}
-            <div class="text-danger">{{ form.plot_number.errors }}</div>
-          {% endif %}
-        </td>
-        <td>
-          {{ form.phone }}
-          {% if form.phone.errors %}
-            <div class="text-danger">{{ form.phone.errors }}</div>
-          {% endif %}
-        </td>
-        <td class="text-center align-middle">
-          {{ form.DELETE }}
-        </td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+      </tbody>
+    </table>
     <p class="text-muted">* Чтобы добавить нового члена правления — заполните пустую строку в таблице.</p>
 
     <hr>
@@ -190,7 +190,7 @@
         <div class="text-danger">{{ community_form.additional_info.errors }}</div>
       {% endif %}
     </div>
-        <div class="mb-3">
+    <div class="mb-3">
       {{ community_form.messenger_group_link.label_tag }}
       {{ community_form.messenger_group_link }}
       {% if community_form.messenger_group_link.errors %}
@@ -198,8 +198,54 @@
       {% endif %}
     </div>
 
-
     <button type="submit" class="btn btn-primary">Сохранить все</button>
   </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const formsetPrefix = '{{ board_member_formset.prefix }}';
+    const totalFormsInput = document.querySelector(`input[name="${formsetPrefix}-TOTAL_FORMS"]`);
+    const formsetTableBody = document.querySelector('#board-member-table tbody');
+
+    function updateTotalForms(increment = 1) {
+        totalFormsInput.value = parseInt(totalFormsInput.value) + increment;
+    }
+
+    function addForm() {
+        const totalForms = parseInt(totalFormsInput.value);
+        const lastFormRow = formsetTableBody.querySelector(`tr:nth-child(${totalForms})`);
+        let newRow = lastFormRow.cloneNode(true);
+
+        newRow.querySelectorAll('input').forEach(input => {
+            if (input.type === "checkbox") {
+                input.checked = false;
+            } else {
+                input.value = '';
+            }
+        });
+
+        newRow.querySelectorAll('input, select, textarea').forEach(elem => {
+            let name = elem.name;
+            let id = elem.id;
+            let newName = name.replace(`-${totalForms - 1}-`, `-${totalForms}-`);
+            let newId = id.replace(`_${totalForms - 1}_`, `_${totalForms}_`);
+            elem.name = newName;
+            elem.id = newId;
+        });
+
+        formsetTableBody.appendChild(newRow);
+        updateTotalForms();
+    }
+
+    formsetTableBody.addEventListener('input', function (event) {
+        const totalForms = parseInt(totalFormsInput.value);
+        const target = event.target;
+
+        if (target.name === `${formsetPrefix}-${totalForms - 1}-full_name` && target.value.trim() !== '') {
+            addForm();
+        }
+    });
+});
+</script>
 {% endblock %}

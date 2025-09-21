@@ -12,8 +12,10 @@
 
     <a href="{% url 'my_ads' %}" class="btn btn-outline-primary square-btn">Мои объявления</a>
 
+    <a href="{% url 'ballot_list' %}" class="btn btn-outline-primary square-btn">ОБЩЕЕ СОБРАНИЕ (голосования)</a>
+
     {% if user_role == 'chairman' or user_role == 'board_member' or user_role == 'user'  %}
-    <a href="{% url 'voting_overview' %}" class="btn btn-outline-primary square-btn">Результаты голосования</a>
+    <a href="{% url 'voting_overview' %}" class="btn btn-outline-primary square-btn">Результаты опросов</a>
     {% endif %}
 
     <a href="{% url 'password_change' %}" class="btn btn-outline-primary square-btn">Изменить пароль</a>

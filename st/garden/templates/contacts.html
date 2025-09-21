@@ -2,206 +2,204 @@
 
 {% block content %}
 <style>
-.contact-info {
-  font-size: 1.2rem;
-}
+  .contact-info {
+    font-size: 1.1rem;
+  }
+  .section-title {
+    color: #000000;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
 
-.large-font p {
-  font-size: 1.1rem !important;
-  text-align: center !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  max-width: 100%;
-}
-
-.centered-row {
-  display: flex;
-  justify-content: center;
-  gap: 3rem;
-  flex-wrap: wrap;
-}
-
-.col-custom {
-  flex: 0 0 45%;
-  min-width: 300px;
-}
-
-.text-start {
-  text-align: left !important;
-}
+    letter-spacing: 0.05em;
+  }
+  .contact-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 3rem;
+  }
+  .contact-card {
+    background: #f9fafb;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgb(72 94 116 / 0.1);
+    padding: 1.75rem 2rem;
+    flex: 1 1 320px;
+    max-width: 600px;
+    transition: box-shadow 0.3s ease;
+  }
+  .contact-card:hover {
+    box-shadow: 0 6px 18px rgb(72 94 116 / 0.15);
+  }
+  .contact-group-title {
+    font-weight: 600;
+    color: #2f855a;
+    margin-bottom: 0.75rem;
+    border-bottom: 2px solid #68d391;
+    padding-bottom: 0.25rem;
+  }
+  .contact-details p, .contact-details li {
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+    color: #2d3748;
+  }
+  .contact-details ul {
+    padding-left: 1.2rem;
+  }
+  .btn-custom-primary {
+    background-color: #38a169;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  .btn-custom-primary:hover {
+    background-color: #2f855a;
+    color: #fff;
+  }
+  .messenger-link {
+    display: inline-block;
+    color: #6b46c1;
+    font-weight: 700;
+    text-decoration: underline;
+    font-size: 1.1rem;
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+  }
+  .messenger-link:hover {
+    color: #553c9a;
+    text-decoration: none;
+  }
 </style>
 
-<div class="container text-center">
-  <h2 class="mb-4">Контакты СТ «{{ community.name }}»</h2>
+<div class="container py-4">
+  <h2 class="section-title">Контакты СТ «{{ community.name }}»</h2>
 
-  <div class="centered-row mx-auto">
-    <!-- Левая колонка: Контакты -->
-    <div class="col-custom text-start">
-      <h4 class="text-center">Председатель правления:</h4>
-      {% if contacts.chairman %}
-        {% if contacts.chairman.full_name or contacts.chairman.plot_number or contacts.chairman.phone %}
-          <p class="text-center">
-            {% if contacts.chairman.full_name %}
-              <span class="contact-info">{{ contacts.chairman.full_name }}</span>
-            {% endif %}
-            {% if contacts.chairman.plot_number %}
-              , <span class="contact-info">участок №{{ contacts.chairman.plot_number }}</span>
-            {% endif %}
-            {% if contacts.chairman.phone %}
-              , <span class="contact-info">☎{{ contacts.chairman.phone }}</span>
-            {% endif %}
-          </p>
+  <div class="contact-row">
+    <!-- Левая колонка -->
+    <div class="contact-card">
+      <div class="contact-group-title">Председатель правления</div>
+      <div class="contact-details">
+        {% if contacts.chairman %}
+          {% if contacts.chairman.full_name or contacts.chairman.plot_number or contacts.chairman.phone %}
+            <p>
+              {{ contacts.chairman.full_name }}
+              {% if contacts.chairman.plot_number %}, участок №{{ contacts.chairman.plot_number }}{% endif %}
+              {% if contacts.chairman.phone %}, ☎{{ contacts.chairman.phone }}{% endif %}
+            </p>
+          {% else %}
+            <p class="text-muted">Информация отсутствует.</p>
+          {% endif %}
         {% else %}
-          <p>Информация отсутствует.</p>
+          <p class="text-muted">Информация отсутствует.</p>
         {% endif %}
-      {% else %}
-        <p>Информация отсутствует.</p>
-      {% endif %}
+      </div>
 
-      <h4 class="text-center">Казначей:</h4>
-      {% if contacts.treasurer %}
-        {% if contacts.treasurer.full_name or contacts.treasurer.plot_number or contacts.treasurer.phone %}
-          <p class="text-center">
-            {% if contacts.treasurer.full_name %}
-              <span class="contact-info">{{ contacts.treasurer.full_name }}</span>
-            {% endif %}
-            {% if contacts.treasurer.plot_number %}
-              , <span class="contact-info">участок №{{ contacts.treasurer.plot_number }}</span>
-            {% endif %}
-            {% if contacts.treasurer.phone %}
-              , <span class="contact-info">☎{{ contacts.treasurer.phone }}</span>
-            {% endif %}
-          </p>
+      <div class="contact-group-title mt-4">Казначей</div>
+      <div class="contact-details">
+        {% if contacts.treasurer %}
+          {% if contacts.treasurer.full_name or contacts.treasurer.plot_number or contacts.treasurer.phone %}
+            <p>
+              {{ contacts.treasurer.full_name }}
+              {% if contacts.treasurer.plot_number %}, участок №{{ contacts.treasurer.plot_number }}{% endif %}
+              {% if contacts.treasurer.phone %}, ☎{{ contacts.treasurer.phone }}{% endif %}
+            </p>
+          {% else %}
+            <p class="text-muted">Информация отсутствует.</p>
+          {% endif %}
         {% else %}
-          <p>Информация отсутствует.</p>
+          <p class="text-muted">Информация отсутствует.</p>
         {% endif %}
-      {% else %}
-        <p>Информация отсутствует.</p>
-      {% endif %}
+      </div>
 
-      <h4 class="text-center">Члены правления:</h4>
-      {% if contacts.board_members %}
-        <ul class="list-unstyled">
-          {% for member in contacts.board_members %}
-            {% if member.full_name or member.plot_number or member.phone %}
-              <li class="text-center">
-                {% if member.full_name %}
-                  <span class="contact-info">{{ member.full_name }}</span>
-                {% endif %}
-                {% if member.plot_number %}
-                  , <span class="contact-info">участок №{{ member.plot_number }}</span>
-                {% endif %}
-                {% if member.phone %}
-                  , <span class="contact-info">☎{{ member.phone }}</span>
-                {% endif %}
-              </li>
-            {% endif %}
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p>Информация отсутствует.</p>
-      {% endif %}
-
-      <h4 class="text-center">Ответственный за электрохозяйство:</h4>
-      {% if contacts.electricity_manager %}
-        {% if contacts.electricity_manager.full_name or contacts.electricity_manager.plot_number or contacts.electricity_manager.phone %}
-          <p class="text-center">
-            {% if contacts.electricity_manager.full_name %}
-              <span class="contact-info">{{ contacts.electricity_manager.full_name }}</span>
-            {% endif %}
-            {% if contacts.electricity_manager.plot_number %}
-              , <span class="contact-info">участок №{{ contacts.electricity_manager.plot_number }}</span>
-            {% endif %}
-            {% if contacts.electricity_manager.phone %}
-              , <span class="contact-info">☎{{ contacts.electricity_manager.phone }}</span>
-            {% endif %}
-          </p>
+      <div class="contact-group-title mt-4">Члены правления</div>
+      <div class="contact-details">
+        {% if contacts.board_members %}
+          <ul class="list-unstyled">
+            {% for member in contacts.board_members %}
+              {% if member.full_name or member.plot_number or member.phone %}
+                <li>
+                  {{ member.full_name }}
+                  {% if member.plot_number %}, участок №{{ member.plot_number }}{% endif %}
+                  {% if member.phone %}, ☎{{ member.phone }}{% endif %}
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
         {% else %}
-          <p>Информация отсутствует.</p>
+          <p class="text-muted">Информация отсутствует.</p>
         {% endif %}
-      {% else %}
-        <p>Информация отсутствует.</p>
-      {% endif %}
+      </div>
 
-      <h4 class="text-center">Ответственный за водохозяйство:</h4>
-      {% if contacts.water_manager %}
-        {% if contacts.water_manager.full_name or contacts.water_manager.plot_number or contacts.water_manager.phone %}
-          <p class="text-center">
-            {% if contacts.water_manager.full_name %}
-              <span class="contact-info">{{ contacts.water_manager.full_name }}</span>
-            {% endif %}
-            {% if contacts.water_manager.plot_number %}
-              , <span class="contact-info">участок №{{ contacts.water_manager.plot_number }}</span>
-            {% endif %}
-            {% if contacts.water_manager.phone %}
-              , <span class="contact-info">☎{{ contacts.water_manager.phone }}</span>
-            {% endif %}
-          </p>
+      <div class="contact-group-title mt-4">Ответственный за электрохозяйство</div>
+      <div class="contact-details">
+        {% if contacts.electricity_manager %}
+          {% if contacts.electricity_manager.full_name or contacts.electricity_manager.plot_number or contacts.electricity_manager.phone %}
+            <p>
+              {{ contacts.electricity_manager.full_name }}
+              {% if contacts.electricity_manager.plot_number %}, участок №{{ contacts.electricity_manager.plot_number }}{% endif %}
+              {% if contacts.electricity_manager.phone %}, ☎{{ contacts.electricity_manager.phone }}{% endif %}
+            </p>
+          {% else %}
+            <p class="text-muted">Информация отсутствует.</p>
+          {% endif %}
         {% else %}
-          <p>Информация отсутствует.</p>
+          <p class="text-muted">Информация отсутствует.</p>
         {% endif %}
-      {% else %}
-        <p>Информация отсутствует.</p>
-      {% endif %}
+      </div>
+
+      <div class="contact-group-title mt-4">Ответственный за водохозяйство</div>
+      <div class="contact-details">
+        {% if contacts.water_manager %}
+          {% if contacts.water_manager.full_name or contacts.water_manager.plot_number or contacts.water_manager.phone %}
+            <p>
+              {{ contacts.water_manager.full_name }}
+              {% if contacts.water_manager.plot_number %}, участок №{{ contacts.water_manager.plot_number }}{% endif %}
+              {% if contacts.water_manager.phone %}, ☎{{ contacts.water_manager.phone }}{% endif %}
+            </p>
+          {% else %}
+            <p class="text-muted">Информация отсутствует.</p>
+          {% endif %}
+        {% else %}
+          <p class="text-muted">Информация отсутствует.</p>
+        {% endif %}
+      </div>
     </div>
 
-    <!-- Правая колонка: Адреса и дополнительная информация -->
-    <div class="col-custom text-start large-font">
-      <h4 class="text-center">Юридический адрес:</h4>
-      {% if community.legal_address %}
-        <p >{{ community.legal_address|linebreaks }}</p>
-      {% else %}
-        <p>Информация отсутствует.</p>
-      {% endif %}
+    <!-- Правая колонка -->
+    <div class="contact-card">
+      <div class="contact-group-title">Юридический адрес</div>
+      <p>{{ community.legal_address|linebreaksbr }}</p>
 
-      <h4 class="text-center">Почтовый адрес:</h4>
-      {% if community.postal_address %}
-        <p>{{ community.postal_address|linebreaks }}</p>
-      {% else %}
-        <p>Информация отсутствует.</p>
-      {% endif %}
+      <div class="contact-group-title mt-4">Почтовый адрес</div>
+      <p>{{ community.postal_address|linebreaksbr }}</p>
 
-      <h4 class="text-center">Банковские реквизиты:</h4>
-      {% if community.bank_details %}
-        <p>{{ community.bank_details|linebreaks }}</p>
-      {% else %}
-        <p>Информация отсутствует.</p>
-      {% endif %}
+      <div class="contact-group-title mt-4">Банковские реквизиты</div>
+      <p>{{ community.bank_details|linebreaksbr }}</p>
 
-
-      <h4 class="text-center">Дополнительная информация:</h4>
       {% if community.additional_info %}
-        <p>{{ community.additional_info|linebreaks }}</p>
+        <div class="contact-group-title mt-4">Дополнительная информация</div>
+        <p>{{ community.additional_info|linebreaksbr }}</p>
       {% endif %}
 
       {% if community.messenger_group_link %}
-        <p class="text-center">
-          <a href="{{ community.messenger_group_link }}" target="_blank" rel="noopener noreferrer"
-             style="
-               color: #665cac;
-               font-weight: bold;
-               text-decoration: underline;
-               font-size: 1.2rem;
-               line-height: 1.5;
-               transition: color 0.3s ease, text-decoration 0.3s ease;
-             "
-             onmouseover="this.style.color='#4b3d82'; this.style.textDecoration='none';"
-             onmouseout="this.style.color='#665cac'; this.style.textDecoration='underline';"
-          >
+        <div class="text-center mt-4">
+          <a href="{{ community.messenger_group_link }}" target="_blank" rel="noopener noreferrer" class="messenger-link">
             Присоединиться к группе в мессенджере Viber
           </a>
-
+        </div>
       {% endif %}
 
-
       {% if user.profile.role == 'chairman' %}
-        <p class="mb-4">
-          <a href="{% url 'community_contacts_edit_all' %}" class="btn btn-warning mb-3">Редактировать все контактные данные</a>
-        </p>
+        <div class="text-center mt-5">
+          <a href="{% url 'community_contacts_edit_all' %}" class="btn btn-custom-primary">Редактировать все контактные данные</a>
+        </div>
       {% elif user.profile.role == 'board_member' %}
-        <p class="mb-4">
-          <a href="{% url 'community_contact_edit' %}" class="btn btn-warning mb-3">Редактировать контактную информацию</a>
-        </p>
+        <div class="text-center mt-5">
+          <a href="{% url 'community_contact_edit' %}" class="btn btn-custom-primary">Редактировать контактную информацию</a>
+        </div>
       {% endif %}
     </div>
   </div>

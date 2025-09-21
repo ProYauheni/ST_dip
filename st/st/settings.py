@@ -55,8 +55,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'garden.middleware.CommunityActiveMiddleware'
+    'garden.middleware.CommunityActiveMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 ROOT_URLCONF = 'st.urls'
 
@@ -143,7 +146,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # папка для собранных статических файлов
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -172,15 +175,36 @@ EMAIL_ADMIN = EMAIL_HOST_USER
 
 
 
-# SUMMERNOTE_CONFIG = {
-#     'toolbar': [
-#         ['style', ['bold', 'italic', 'underline', 'clear']],
-#         ['font', ['strikethrough']],
-#         ['para', ['ul', 'ol', 'paragraph']],
-#         ['height', ['height']],
-#         ['help', ['help']],
-#     ],
-#     # Можно добавить другие настройки, например размер и язык
-#     'width': '600px',
-#     'height': '200px',
-# }
+
+
+SUMMERNOTE_CONFIG = {
+    'toolbar': [
+        ['style', ['style']],
+        ['font', ['bold', 'italic', 'underline', 'clear']],
+        ['fontname', ['fontname']],
+        ['color', ['color']],
+        ['height', ['height']],
+        ['para', ['ul', 'ol', 'paragraph']],
+        ['insert', ['link']],  # без 'picture' и 'video'
+        ['view', ['fullscreen', 'codeview']],
+
+    ],
+    'styleTags': ['p', 'h1', 'h2', 'h3', 'pre', 'div'],
+    'iframe': True,  # редактор использует iframe
+    'width': '100%',
+    'height': '300',
+    'codemirror': {'mode': 'htmlmixed', 'lineNumbers': 'true'},
+    'disable_upload': True,
+    'summernote': {
+        'lineHeights': ['1.0', '1.2', '1.5', '2.0', '3.0'],  # Добавляем опции межстрочного интервала
+    },
+    'popover': {
+        'air': [
+            ['style', ['style']],
+            ['font', ['bold', 'underline', 'clear']],
+            ['para', ['ul', 'paragraph']],
+            ['link', ['link']],
+        ],
+    },
+}
+

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load my_filters %}
+
+{% block content %}
+<h2>Проголосовавшие пользователи по бюллетеню заочного голосования от {{ ballot.start_date|date:"d.m.Y" }}</h2>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th class="text-center">Пользователь</th>
+      {% for question in ballot.questions.all %}
+      <th>{{ question.text }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for user, user_votes in votes_by_user.items %}
+    <tr class="text-center">
+      <td>{{ user.username }}</td>
+      {% for question in ballot.questions.all %}
+      <td>
+        {% with vote=user_votes|get_item:question %}
+          {% if vote %}
+            {% if vote.choice == 'for' %}
+              За
+            {% elif vote.choice == 'against' %}
+              Против
+            {% elif vote.choice == 'abstained' %}
+              Воздержался
+            {% else %}
+              -
+            {% endif %}
+          {% else %}
+            -
+          {% endif %}
+        {% endwith %}
+      </td>
+      {% endfor %}
+    </tr>
+    {% empty %}
+    <tr><td colspan="{{ ballot.questions.count|add:'1' }}">Нет голосов.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="{% url 'ballot_list' %}" class="btn btn-secondary mt-3">Вернуться к списку бюллетеней</a>
+{% endblock %}

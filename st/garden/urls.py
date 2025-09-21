@@ -16,14 +16,27 @@ urlpatterns = [
     path('ads/<int:pk>/delete/', views.delete_advertisement, name='delete_advertisement'),
     path('my_community/', views.my_community, name='my_community'),
     path('community-disabled/', community_disabled, name='community_disabled'),
+
     path('voting/', views.voting_list, name='voting_list'),
     path('voting/<int:voting_id>/', views.voting_detail, name='voting_detail'),
-
-
     path('votings/', views.voting_overview, name='voting_overview'),
     path('votings/<int:voting_id>/finish/', views.finish_voting, name='finish_voting'),
     path('votings/create/<int:community_id>/', views.voting_create, name='voting_create'),
     path('voting/<int:voting_id>/edit/', views.voting_edit, name='voting_edit'),
+    path('voting/<int:voting_id>/delete/', views.delete_voting, name='delete_voting'),
+
+
+    path('ballots/', views.ballot_list, name='ballot_list'),
+    path('ballot/create/', views.create_ballot, name='create_ballot'),
+    path('ballot/<int:ballot_id>/edit/', views.edit_ballot, name='edit_ballot'),
+    path('ballot/<int:ballot_id>/delete/', views.delete_ballot, name='delete_ballot'),
+    path('question/<int:question_id>/vote/', views.vote_question, name='vote_question'),
+    path('ballot/<int:ballot_id>/', views.ballot_vote, name='ballot_vote'),
+    path('ballot/<int:ballot_id>/results/', views.ballot_results, name='ballot_results'),
+    path('ballot/<int:ballot_id>/voters/', views.ballot_voters, name='ballot_voters'),
+    path('ballot/<int:ballot_id>/finish/', views.finish_ballot, name='ballot_finish'),
+
+
 
     path('voting/overview/', views.voting_overview, name='voting_overview'),
     path('forum/new/', views.forum_post_create, name='forum_post_create'),

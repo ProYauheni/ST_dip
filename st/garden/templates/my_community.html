@@ -30,7 +30,7 @@
     </a>
 
     <a href="{% url 'voting_list' %}" class="btn btn-outline-primary square-btn">
-        ГОЛОСОВАНИЯ
+        ПРОЙТИ ОПРОС
     </a>
 
     <a href="{% url 'community_payment' %}" class="btn btn-outline-primary square-btn">
@@ -40,6 +40,10 @@
     <a href="{% url 'documents_list' community.id %}" class="btn btn-outline-primary square-btn">
         ДОКУМЕНТЫ
     </a>
+
+<!--    <a href="{% url 'ballot_list' %}" class="btn btn-outline-primary square-btn">-->
+<!--        ОБЩЕЕ СОБРАНИЕ (голосование)-->
+<!--    </a>-->
 
 </div>
 
@@ -71,7 +75,9 @@
 
                 <div class="card-text-container" id="news-content-{{ forloop.counter }}"
                      style="overflow: hidden; max-height: 4.5em; line-height: 1.3em; transition: max-height 0.3s ease; color: #1a202c;">
-                    {{ item.content|markdown }}
+                    <div class="note-editable">
+                      {{ item.content|safe }}
+                    </div>
                 </div>
                 <button class="btn btn-link p-0 mt-2 align-self-start text-success read-more-btn"
                         data-target="news-content-{{ forloop.counter }}" style="display:none; font-weight: 600;">

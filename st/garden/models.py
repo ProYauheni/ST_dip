@@ -4,6 +4,9 @@ from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
 
+from django_summernote.fields import SummernoteTextField
+
+
 
 class Community(models.Model):
     name = models.CharField(max_length=100)
@@ -61,7 +64,7 @@ def is_chairman_or_board_member(user, community):
 class News(models.Model):
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='news')
     title = models.CharField(max_length=200, verbose_name='Заголовок')
-    content = models.TextField(verbose_name='Описание новости ')
+    content = SummernoteTextField(verbose_name='Описание новости ')
     created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)  # Поле мягкого удаления
     pinned = models.BooleanField(default=False)
@@ -166,6 +169,46 @@ class Vote(models.Model):
     def __str__(self):
         return ""
 
+"""===============================Голосовалка по 155 указу =============================="""
+class Ballot(models.Model):
+    community = models.ForeignKey(Community, on_delete=models.CASCADE)
+    agenda = models.TextField("Повестка дня общего собрания")
+    instructions = models.TextField("Порядок заполнения бюллетеня", blank=True, null=True)
+    submission_place = models.CharField("Место представления заполненных бюллетеней", max_length=255, blank=True, null=True)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(default=timezone.now)
+    counting_commission_date = models.DateField()
+    documents = models.FileField(upload_to="ballot_docs/", blank=True, null=True)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Бюллетень {self.community.name} от {self.created_at.date()}"
+
+class BallotQuestion(models.Model):
+    ballot = models.ForeignKey(Ballot, on_delete=models.CASCADE, related_name='questions')
+    text = models.TextField("Вопрос")
+    decision_project = models.TextField("Проект решения")
+
+    def __str__(self):
+        return self.text[:50]
+
+class BallotVote(models.Model):
+    VOTE_CHOICES = [
+        ('for', 'За'),
+        ('against', 'Против'),
+        ('abstained', 'Воздержался'),
+    ]
+    question = models.ForeignKey(BallotQuestion, on_delete=models.CASCADE, related_name="votes")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    choice = models.CharField(max_length=10, choices=VOTE_CHOICES, blank=False, null=False)
+
+    class Meta:
+        unique_together = ('question', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_choice_display()} по вопросу {self.question.id}"
+"""======================================================================================"""
 
 
 class PageVisit(models.Model):

@@ -17,12 +17,6 @@
   }
 </style>
 
-{% if can_manage %}
-  <div class="mb-3 text-end">
-    <a href="{% url 'voting_create' community.id %}" class="btn btn-primary">Создать голосование</a>
-  </div>
-{% endif %}
-
 {% if votings %}
     <div class="table-responsive">
       <table class="table table-striped table-bordered align-middle voting-table">
@@ -35,21 +29,12 @@
                   <th class="text-center">"За"</th>
                   <th class="text-center">"Против"</th>
                   <th class="text-center">"Воздержались"</th>
-                  {% if can_manage %}
-                  <th class="text-center">Действия</th>
-                  {% endif %}
               </tr>
           </thead>
           <tbody>
               {% for voting in votings %}
               <tr>
-                  <td>
-                    {{ voting.question }}
-                    {% if can_manage %}
-                      <br>
-                      <a href="{% url 'voting_edit' voting.id %}" class="btn btn-warning btn-sm mt-1">Редактировать</a>
-                    {% endif %}
-                  </td>
+                  <td>{{ voting.question }}</td>
                   <td class="text-center">{% if voting.active %}Да{% else %}Нет{% endif %}</td>
                   <td class="text-center">
                       {% if voting.end_date %}
@@ -62,19 +47,6 @@
                   <td class="text-center">{{ voting.votes_for }}</td>
                   <td class="text-center">{{ voting.votes_against }}</td>
                   <td class="text-center">{{ voting.votes_abstained }}</td>
-                  {% if can_manage %}
-                  <td class="text-center">
-                      {% if voting.active %}
-                        <form method="post" action="{% url 'finish_voting' voting.id %}"
-                          onsubmit="return confirm('Завершить голосование?');" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-warning btn-sm">Завершить голосование</button>
-                        </form>
-                      {% else %}
-                        <span class="text-muted">—</span>
-                      {% endif %}
-                  </td>
-                  {% endif %}
               </tr>
               {% endfor %}
           </tbody>

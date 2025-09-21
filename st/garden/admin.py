@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from .models import (Community, Profile, News, ForumPost, Advertisement, Vote, Voting, Document, BoardMember, PaymentInfo,
-                     DocumentFolder, Appeal)
+                     DocumentFolder, Appeal, Comment, Ballot)
 from adminsortable2.admin import SortableAdminMixin
 from django.contrib.admin import SimpleListFilter
+from django_summernote.admin import SummernoteModelAdmin
 
 
 
@@ -18,7 +19,8 @@ admin.site.register(ForumPost)
 # admin.site.register(Voting)
 # admin.site.register(Document)
 # admin.site.register(DocumentFolder)
-# admin.site.register(Appeal)
+# admin.site.register(Ballot)
+admin.site.register(Comment)
 
 
 class BoardMemberAdmin(admin.ModelAdmin):
@@ -142,9 +144,10 @@ class DocumentAdmin(admin.ModelAdmin):
 
 """==============================Новости========================================================"""
 @admin.register(News)
-class NewsAdmin(admin.ModelAdmin):
+class NewsAdmin(SummernoteModelAdmin):
+    summernote_fields = ('content',)  # поле 'content' с редактором
     list_display = ('title', 'community', 'created_at', 'pinned')
-    list_filter = (CommunityFilter, 'pinned')
+    list_filter = ('community', 'pinned')
     ordering = ['community__name', '-pinned', '-created_at']
 """============================================================================================="""
 
@@ -158,7 +161,7 @@ class ProfileAdmin(admin.ModelAdmin):
 """============================================================================================="""
 
 
-"""==============================Голосование========================================================"""
+"""==============================Опрос========================================================"""
 class VoteInline(admin.TabularInline):
     model = Vote
     extra = 0
@@ -178,3 +181,12 @@ class VotingAdmin(admin.ModelAdmin):
     list_filter = ('community',)
     ordering = ['community__name', 'created_at']
 """============================================================================================="""
+@admin.register(Ballot)
+class BallotAdmin(admin.ModelAdmin):
+    list_display = ('id', 'community', 'start_date', 'end_date', 'active')
+    list_filter = ('community', )  # Фильтр по товариществу
+    ordering = ('community', 'start_date')  # Сортировка по товариществу и дате начала
+    search_fields = ('community__name', )  # Поиск по имени товарищества (если есть поле name)
+
+
+"""==================================Голосование================================================"""

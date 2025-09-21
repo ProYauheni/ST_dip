@@ -1,10 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2 class="text-center mb-4">Активные голосования вашего товарищества</h2>
+<h2 class="text-center mb-4">Активные голосования-опросы вашего товарищества</h2>
+
+{% if is_chairman or is_board_member %}
+  <div class="mb-3 text-end">
+    <a href="{% url 'voting_create' community.id %}" class="btn btn-success">
+      Создать новый опрос
+    </a>
+  </div>
+{% endif %}
 
 <style>
-  /* Увеличиваем ширину первого столбца (Вопрос), разрешаем перенос строк */
   .voting-table th:first-child,
   .voting-table td:first-child {
     min-width: 300px;
@@ -12,14 +19,32 @@
     white-space: normal;
     word-wrap: break-word;
   }
-  /* Остальные столбцы делаем неразрывными, чтобы таблица оставалась компактной */
   .voting-table th:not(:first-child),
   .voting-table td:not(:first-child) {
     white-space: nowrap;
   }
+  .voting-question-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+  .voting-question-link:hover {
+    text-decoration: underline;
+  }
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+  .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+  }
 </style>
 
-{# Блок с предупреждением — если передано сообщение warning_message #}
 {% if warning_message %}
   <div style="background-color: #fff9c4; color: #665500; padding: 15px; border: 1px solid #ffecb3; border-radius: 4px; margin-bottom: 20px; font-weight: 500;">
     {{ warning_message }}
@@ -27,34 +52,50 @@
 {% endif %}
 
 {% if votings %}
-    <div class="table-responsive">
-      <table class="table table-striped voting-table">
-          <thead>
-              <tr>
-                  <th>Вопрос</th>
-                  <th class="text-center">Начало голосования</th>
-                  <th class="text-center">Завершение голосования</th>
-                  <th>Действия</th>
-              </tr>
-          </thead>
-          <tbody>
-              {% for voting in votings %}
-                  <tr>
-                      <td><strong>{{ voting.question }}</strong></td>
-                      <td class="text-center">{{ voting.start_date|date:"d.m.Y H:i" }}</td>
-                      <td class="text-center">{{ voting.end_date|date:"d.m.Y H:i" }}</td>
-                      <td>
-                          <a href="{% url 'voting_detail' voting.id %}" class="btn btn-primary btn-sm">
-                              Голосовать
-                          </a>
-                      </td>
-                  </tr>
-              {% endfor %}
-          </tbody>
-      </table>
-    </div>
+  <div class="table-responsive">
+    <table class="table table-striped voting-table">
+      <thead>
+        <tr>
+          <th>Вопрос</th>
+          <th class="text-center">Начало голосования</th>
+          <th class="text-center">Завершение голосования</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for voting in votings %}
+        <tr>
+          <td>
+            <a href="{% url 'voting_detail' voting.id %}" class="voting-question-link">
+              <strong>{{ voting.question }}</strong>
+            </a>
+          </td>
+          <td class="text-center">{{ voting.start_date|date:"d.m.Y H:i" }}</td>
+          <td class="text-center">{{ voting.end_date|date:"d.m.Y H:i" }}</td>
+          <td>
+            {% if is_chairman %}
+              <a href="{% url 'voting_edit' voting.id %}" class="btn btn-warning btn-sm">Редактировать</a>
+
+              <form method="post" action="{% url 'delete_voting' voting.id %}" style="display:inline-block;" onsubmit="return confirm('Удалить опрос? Это действие нельзя будет отменить. Продолжить?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+              </form>
+
+              {% if voting.active %}
+              <form method="post" action="{% url 'finish_voting' voting.id %}" style="display:inline-block; margin-left:0.25rem;" onsubmit="return confirm('Завершить голосование?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning btn-sm">Завершить</button>
+              </form>
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% else %}
-    <p>В настоящее время нет активных голосований.</p>
+  <p>В настоящее время нет активных голосований.</p>
 {% endif %}
 
 {% endblock %}

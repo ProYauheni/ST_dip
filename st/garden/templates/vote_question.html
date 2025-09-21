@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Голосование по вопросу</h2>
+<p>{{ question.text }}</p>
+<p>Проект решения: {{ question.decision_project }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Голосовать</button>
+</form>
+
+<a href="{% url 'ballot_vote' question.ballot.id %}">Вернуться к бюллетеню</a>
+{% endblock %}

@@ -1,13 +1,56 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Редактировать объявление: {{ ad.title }}</h2>
+<style>
+  label {
+    display: block;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+  input, textarea {
+    font-size: 1.1rem;
+    padding: 0.7rem 1rem;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .error-text {
+    text-align: center;
+    color: #dc3545;
+    margin-top: 0.25rem;
+    font-size: 0.9rem;
+  }
+  form {
+    max-width: 700px;
+    margin: 2rem auto;
+  }
+</style>
 
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  {{ form.as_p }}
+<div class="container">
+  <h2 class="text-center mb-5">Редактировать объявление: {{ ad.title }}</h2>
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
 
-  <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-  <a href="{% url 'ads' %}">Отмена</a>
-</form>
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <div class="mb-4">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}
+          <small class="form-text text-muted d-block text-center">{{ field.help_text }}</small>
+        {% endif %}
+        {% for error in field.errors %}
+          <div class="error-text">{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <div class="d-flex justify-content-center gap-3">
+      <button type="submit" class="btn btn-primary btn-lg px-4">Сохранить изменения</button>
+      <a href="{% url 'ads' %}" class="btn btn-outline-secondary btn-lg px-4">Отмена</a>
+    </div>
+  </form>
+</div>
 {% endblock %}
